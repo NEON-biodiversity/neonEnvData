@@ -6,12 +6,23 @@ library(sf)
 # Load in data_dir location
 source("./R/config.R")
 
+# Specify projection 
+prj <- "EPSG:5070" # Albers equal area 
+
 # Import NEON data 
-dom <- st_read(paste0(data_dir, "NEON_spatial/NEON_domains/NEON_Domains.shp"), quiet=T)
-site <- st_read(paste0(data_dir, "NEON_spatial/NEON_sites/terrestrialSamplingBoundaries.shp"), quiet=T)
-plt <- st_read(paste0(data_dir, "NEON_spatial/NEON_TOS_Plot_Points/NEON_TOS_Plot_Points.shp"), quiet=T) %>% 
-filter(subtype == "mammalGrid") # %>%
-# st_write(paste0(data_dir, "NEON_spatial/NEON_small_mammal_plots/NEON_small_mammal_plots.shp"))
+dom <- st_read(paste0(data_dir, "NEON_spatial/NEON_domains/NEON_Domains.shp"), quiet=T) %>% 
+  st_transform(prj) %>% 
+  st_write(paste0(out_dir,"/EPSG5070/NEON_domains/NEON_domains.shp"), append=F)
+
+site <- st_read(paste0(data_dir, "NEON_spatial/NEON_sites/terrestrialSamplingBoundaries.shp"), quiet=T)  %>% 
+  st_transform(prj) %>% 
+  st_write(paste0(out_dir,"/EPSG5070/NEON_sites/NEON_sites.shp"), append=F)
+
+plt <- st_read(paste0(data_dir, "NEON_spatial/NEON_TOS_Plot_Points/NEON_TOS_Plot_Points.shp"), quiet=T)  %>% 
+  filter(subtype == "mammalGrid") %>% 
+  st_transform(prj)  %>% 
+  st_write(paste0(out_dir, "/EPSG5070/NEON_small_mammal_plots/NEON_small_mammal_plots.shp"), append=F)
+
 
 # Define functions 
 id_circle_center <- function(d){
@@ -21,81 +32,71 @@ id_circle_center <- function(d){
   return(c)
 }
 
-dist_to_circle_center <- function(d, dist_metric = "maximum"){
+max_dist_to_circle_center <- function(d){
   du <- st_union(d)
   b <- lwgeom::st_minimum_bounding_circle(du)
   c <- st_centroid(b)
   dp <- d %>% st_cast("POINT")
   dist <- st_distance(dp, c)
-  if(dist_metric == "maximum"){
-    return(as.numeric(max(dist)))
-  }
-  if(dist_metric == "median"){
-    return(as.numeric(median(dist)))
-  }
+  return(as.numeric(max(dist)))
 }
 
 ################################################################################
+##### PLOT SCALE (MAMMALS) ##### 
+
 ##### SITE SCALE ##### 
+plt_nested <- plt %>% 
+  st_make_valid() %>% 
+  nest(.by = plotID) %>% 
+  mutate(circle_center = lapply(data, function(x) id_circle_center(x)), 
+         max_dist_circ = lapply(data, function(x) max_dist_to_circle_center(x))) %>% 
+  unnest(cols = c(max_dist_circ, circle_center)) %>% 
+  mutate(plot_poly = st_buffer(circle_center, dist = 100))
+# proc.time()-start
 
 # start <- proc.time()
-test <- plt %>% 
+site_nested <- plt %>% 
   st_make_valid() %>% 
   nest(.by = siteID) %>% 
-  mutate(centroid = lapply(data, function(x) st_centroid(st_union(x)) %>% st_set_crs(4326)), 
-         circle_center = lapply(data, function(x) id_circle_center(x)), 
-         max_dist_circ = lapply(data, function(x) dist_to_circle_center(x)), 
-         med_dist_circ = lapply(data, function(x) dist_to_circle_center(x, dist_metric = "median"))) %>% 
-  unnest(cols = c(centroid, max_dist_circ, med_dist_circ, circle_center)) %>% 
-  mutate(buff_dist = max(max_dist_circ)) %>% 
+  mutate(circle_center = lapply(data, function(x) id_circle_center(x)), 
+         max_dist_circ = lapply(data, function(x) max_dist_to_circle_center(x))) %>% 
+  unnest(cols = c(max_dist_circ, circle_center)) %>% 
+  mutate(buff_dist =15000) %>% 
+  # mutate(buff_dist = max(max_dist_circ)) %>% 
   mutate(site_poly = st_buffer(circle_center, dist = buff_dist))
 # proc.time()-start
 
-site_circle_center <- test %>% 
+
+plt_circle_center <- plt_nested %>% 
+  dplyr::select(plotID, circle_center) %>% 
+  rename(geometry = circle_center) %>% 
+  st_as_sf() %>% 
+  st_write(paste0(out_dir, "/EPSG5070/NEON_radii_centers/plot_circle_centers.shp"))
+
+plt_radii <- plt_nested %>% 
+  dplyr::select(plotID, plot_poly) %>% 
+  rename(geometry = plot_poly) %>% 
+  st_as_sf() %>% 
+  st_write(paste0(out_dir, "/EPSG5070/NEON_radii_centers/plot_radii.shp"))
+
+site_circle_center <- site_nested %>% 
   dplyr::select(siteID, circle_center) %>% 
   rename(geometry = circle_center) %>% 
-  st_as_sf()
+  st_as_sf() %>% 
+  st_write(paste0(out_dir, "/EPSG5070/NEON_radii_centers/site_circle_centers.shp"))
 
-site_radii <- test %>% 
+site_radii <- site_nested %>% 
   dplyr::select(siteID, site_poly) %>% 
   rename(geometry = site_poly) %>% 
-  st_as_sf()
+  st_as_sf() %>% 
+  st_write(paste0(out_dir, "/EPSG5070/NEON_radii_centers/site_radii.shp"))
 
-dom_radii <- test %>% 
+dom_radii <- site_nested %>% 
   dplyr::select(siteID, circle_center) %>% 
   rename(geometry = circle_center) %>% # 100 km centroid around 
   st_as_sf() %>% 
-  st_buffer(100000)
-
-
-################################################################################
-##### DOMAIN SCALE ##### 
-# This code generates a single domain-scale polygon for each domain. In MSU MSB 
-# meeting on 9/5/24 we decided to instead take a "nesting dolls" approach where
-# each site has its own domain-scale polygon. 
-
-# Domain Level 
-test2 <- site %>% 
-  st_make_valid() %>% 
-  nest(.by = domainName) %>% 
-  mutate(centroid = lapply(data, function(x) st_centroid(st_union(x)) %>% st_set_crs(4326)), 
-         max_dist_cent = lapply(data, function(x) max_dist_to_centroid(x)), 
-         circle_center = lapply(data, function(x) id_circle_center(x)), 
-         max_dist_circ = lapply(data, function(x) max_dist_to_circle_center(x))) %>% 
-  unnest(cols = c(max_dist_cent, centroid, max_dist_circ, circle_center)) %>% 
-  mutate(buff_dist = max(max_dist_circ)) %>% 
-  mutate(dom_poly = st_buffer(circle_center, dist = buff_dist))
-
-dom_circle_center <- test2 %>% 
-  dplyr::select(domainName, circle_center) %>% 
-  rename(geometry = circle_center) %>% 
-  st_as_sf()
-
-dom_radii <- test2 %>% 
-  dplyr::select(domainName, dom_poly) %>% 
-  rename(geometry = dom_poly) %>% 
-  st_as_sf()
-
+  st_buffer(100000) %>% 
+  st_write(paste0(out_dir, "/EPSG5070/NEON_radii_centers/domain_radii.shp"))
 ################################################################################
 # Modify site data to indicate whether small mammal plots are present & add climate data siteID
 
@@ -117,4 +118,4 @@ site$bioclim_id[site$siteName == "Steigerwaldt Additional TOS Boundary at Chequa
 site$bioclim_id[site$siteName == "North Sterling, CO Additional TOS Boundary"] <- "STER_TOS"
 site$bioclim_id[site$siteName == "Treehaven Additional TOS Boundary"] <- "TREE_TOS"
 
-st_write(site, "./data/NEON_Filed_Sites_mamm.shp")
+st_write(site, paste0(out_dir,"/EPSG5070/NEON_sites/NEON_field_sites_mamm.shp"))
