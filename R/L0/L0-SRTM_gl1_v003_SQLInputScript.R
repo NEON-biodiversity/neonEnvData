@@ -62,6 +62,7 @@ data_dir <- "/mnt/nvme/geodiversity/csvs"
 csv_files <- list.files("/mnt/nvme/geodiversity/csvs", pattern = ".csv", full.names = TRUE)
 csv_files <- csv_files[substr(basename(csv_files), 9, 9) == "W"]
 csv_files <- csv_files[as.numeric(substr(basename(csv_files), 10, 12)) > 60]
+
 # csv_files <- list.files(data_dir, pattern = ".csv", full.names = TRUE)
 
 # Output directory for SQL files
