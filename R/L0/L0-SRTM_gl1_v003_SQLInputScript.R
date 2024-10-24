@@ -58,7 +58,11 @@ generate_sql_scripts <- function(csv_file_paths, output_directory) {
 # source("./R/config.R")
 data_dir <- "/mnt/nvme/geodiversity/csvs"
 # data_dir <- "/mnt/home/kapsarke/Documents/AIS/Data_Raw/2015/"
-csv_files <- list.files(data_dir, pattern = ".csv", full.names = TRUE)
+
+csv_files <- list.files("/mnt/nvme/geodiversity/csvs", pattern = ".csv", full.names = TRUE)
+csv_files <- csv_files[substr(basename(csv_files), 9, 9) == "W"]
+csv_files <- csv_files[as.numeric(substr(basename(csv_files), 10, 12)) > 60]
+# csv_files <- list.files(data_dir, pattern = ".csv", full.names = TRUE)
 
 # Output directory for SQL files
 output_directory <- "/mnt/nvme/geodiversity/sql_scripts"
