@@ -97,7 +97,7 @@ latlong <-
     lat, 
     long) %>% 
   filter(
-    lat > 14 & long < 60
+    lat > 14 & long < -60
   )
 
 # Delete files outside US lat long
