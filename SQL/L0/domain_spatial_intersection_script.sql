@@ -1,6 +1,4 @@
-load spatial;
-
-CREATE TABLE intersected_D01 AS (
+CREATE TABLE intersected_domain_D01 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -8,7 +6,8 @@ CREATE TABLE intersected_D01 AS (
     WHERE d.domainNumb = 'D01'
   );
 
-COPY intersected_domain_D01 TO '/mnt/nvme/geodiversity/output/intersected_domain_D01.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D01) TO '/mnt/nvme/geodiversity/output/intersected_domain_D01.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D01 AS (
     SELECT 
@@ -22,7 +21,7 @@ CREATE TABLE stats_domain_D01 AS (
 
 COPY stats_domain_D01 TO '/mnt/nvme/geodiversity/output/stats_domain_D01.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D02 AS (
+CREATE TABLE intersected_domain_D02 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -30,7 +29,8 @@ CREATE TABLE intersected_D02 AS (
     WHERE d.domainNumb = 'D02'
   );
 
-COPY intersected_domain_D02 TO '/mnt/nvme/geodiversity/output/intersected_domain_D02.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D02) TO '/mnt/nvme/geodiversity/output/intersected_domain_D02.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D02 AS (
     SELECT 
@@ -44,7 +44,7 @@ CREATE TABLE stats_domain_D02 AS (
 
 COPY stats_domain_D02 TO '/mnt/nvme/geodiversity/output/stats_domain_D02.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D03 AS (
+CREATE TABLE intersected_domain_D03 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -52,7 +52,8 @@ CREATE TABLE intersected_D03 AS (
     WHERE d.domainNumb = 'D03'
   );
 
-COPY intersected_domain_D03 TO '/mnt/nvme/geodiversity/output/intersected_domain_D03.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D03) TO '/mnt/nvme/geodiversity/output/intersected_domain_D03.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D03 AS (
     SELECT 
@@ -66,7 +67,7 @@ CREATE TABLE stats_domain_D03 AS (
 
 COPY stats_domain_D03 TO '/mnt/nvme/geodiversity/output/stats_domain_D03.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D04 AS (
+CREATE TABLE intersected_domain_D04 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -74,7 +75,8 @@ CREATE TABLE intersected_D04 AS (
     WHERE d.domainNumb = 'D04'
   );
 
-COPY intersected_domain_D04 TO '/mnt/nvme/geodiversity/output/intersected_domain_D04.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D04) TO '/mnt/nvme/geodiversity/output/intersected_domain_D04.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D04 AS (
     SELECT 
@@ -88,7 +90,7 @@ CREATE TABLE stats_domain_D04 AS (
 
 COPY stats_domain_D04 TO '/mnt/nvme/geodiversity/output/stats_domain_D04.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D05 AS (
+CREATE TABLE intersected_domain_D05 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -96,7 +98,8 @@ CREATE TABLE intersected_D05 AS (
     WHERE d.domainNumb = 'D05'
   );
 
-COPY intersected_domain_D05 TO '/mnt/nvme/geodiversity/output/intersected_domain_D05.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D05) TO '/mnt/nvme/geodiversity/output/intersected_domain_D05.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D05 AS (
     SELECT 
@@ -110,7 +113,7 @@ CREATE TABLE stats_domain_D05 AS (
 
 COPY stats_domain_D05 TO '/mnt/nvme/geodiversity/output/stats_domain_D05.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D06 AS (
+CREATE TABLE intersected_domain_D06 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -118,7 +121,8 @@ CREATE TABLE intersected_D06 AS (
     WHERE d.domainNumb = 'D06'
   );
 
-COPY intersected_domain_D06 TO '/mnt/nvme/geodiversity/output/intersected_domain_D06.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D06) TO '/mnt/nvme/geodiversity/output/intersected_domain_D06.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D06 AS (
     SELECT 
@@ -132,7 +136,7 @@ CREATE TABLE stats_domain_D06 AS (
 
 COPY stats_domain_D06 TO '/mnt/nvme/geodiversity/output/stats_domain_D06.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D07 AS (
+CREATE TABLE intersected_domain_D07 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -140,7 +144,8 @@ CREATE TABLE intersected_D07 AS (
     WHERE d.domainNumb = 'D07'
   );
 
-COPY intersected_domain_D07 TO '/mnt/nvme/geodiversity/output/intersected_domain_D07.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D07) TO '/mnt/nvme/geodiversity/output/intersected_domain_D07.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D07 AS (
     SELECT 
@@ -154,7 +159,7 @@ CREATE TABLE stats_domain_D07 AS (
 
 COPY stats_domain_D07 TO '/mnt/nvme/geodiversity/output/stats_domain_D07.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D08 AS (
+CREATE TABLE intersected_domain_D08 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -162,7 +167,8 @@ CREATE TABLE intersected_D08 AS (
     WHERE d.domainNumb = 'D08'
   );
 
-COPY intersected_domain_D08 TO '/mnt/nvme/geodiversity/output/intersected_domain_D08.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D08) TO '/mnt/nvme/geodiversity/output/intersected_domain_D08.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D08 AS (
     SELECT 
@@ -176,7 +182,7 @@ CREATE TABLE stats_domain_D08 AS (
 
 COPY stats_domain_D08 TO '/mnt/nvme/geodiversity/output/stats_domain_D08.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D09 AS (
+CREATE TABLE intersected_domain_D09 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -184,7 +190,8 @@ CREATE TABLE intersected_D09 AS (
     WHERE d.domainNumb = 'D09'
   );
 
-COPY intersected_domain_D09 TO '/mnt/nvme/geodiversity/output/intersected_domain_D09.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D09) TO '/mnt/nvme/geodiversity/output/intersected_domain_D09.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D09 AS (
     SELECT 
@@ -198,7 +205,7 @@ CREATE TABLE stats_domain_D09 AS (
 
 COPY stats_domain_D09 TO '/mnt/nvme/geodiversity/output/stats_domain_D09.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D10 AS (
+CREATE TABLE intersected_domain_D10 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -206,7 +213,8 @@ CREATE TABLE intersected_D10 AS (
     WHERE d.domainNumb = 'D10'
   );
 
-COPY intersected_domain_D10 TO '/mnt/nvme/geodiversity/output/intersected_domain_D10.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D10) TO '/mnt/nvme/geodiversity/output/intersected_domain_D10.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D10 AS (
     SELECT 
@@ -220,7 +228,7 @@ CREATE TABLE stats_domain_D10 AS (
 
 COPY stats_domain_D10 TO '/mnt/nvme/geodiversity/output/stats_domain_D10.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D11 AS (
+CREATE TABLE intersected_domain_D11 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -228,7 +236,8 @@ CREATE TABLE intersected_D11 AS (
     WHERE d.domainNumb = 'D11'
   );
 
-COPY intersected_domain_D11 TO '/mnt/nvme/geodiversity/output/intersected_domain_D11.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D11) TO '/mnt/nvme/geodiversity/output/intersected_domain_D11.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D11 AS (
     SELECT 
@@ -242,7 +251,7 @@ CREATE TABLE stats_domain_D11 AS (
 
 COPY stats_domain_D11 TO '/mnt/nvme/geodiversity/output/stats_domain_D11.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D12 AS (
+CREATE TABLE intersected_domain_D12 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -250,7 +259,8 @@ CREATE TABLE intersected_D12 AS (
     WHERE d.domainNumb = 'D12'
   );
 
-COPY intersected_domain_D12 TO '/mnt/nvme/geodiversity/output/intersected_domain_D12.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D12) TO '/mnt/nvme/geodiversity/output/intersected_domain_D12.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D12 AS (
     SELECT 
@@ -264,7 +274,7 @@ CREATE TABLE stats_domain_D12 AS (
 
 COPY stats_domain_D12 TO '/mnt/nvme/geodiversity/output/stats_domain_D12.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D13 AS (
+CREATE TABLE intersected_domain_D13 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -272,7 +282,8 @@ CREATE TABLE intersected_D13 AS (
     WHERE d.domainNumb = 'D13'
   );
 
-COPY intersected_domain_D13 TO '/mnt/nvme/geodiversity/output/intersected_domain_D13.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D13) TO '/mnt/nvme/geodiversity/output/intersected_domain_D13.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D13 AS (
     SELECT 
@@ -286,7 +297,7 @@ CREATE TABLE stats_domain_D13 AS (
 
 COPY stats_domain_D13 TO '/mnt/nvme/geodiversity/output/stats_domain_D13.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D14 AS (
+CREATE TABLE intersected_domain_D14 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -294,7 +305,8 @@ CREATE TABLE intersected_D14 AS (
     WHERE d.domainNumb = 'D14'
   );
 
-COPY intersected_domain_D14 TO '/mnt/nvme/geodiversity/output/intersected_domain_D14.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D14) TO '/mnt/nvme/geodiversity/output/intersected_domain_D14.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D14 AS (
     SELECT 
@@ -308,7 +320,7 @@ CREATE TABLE stats_domain_D14 AS (
 
 COPY stats_domain_D14 TO '/mnt/nvme/geodiversity/output/stats_domain_D14.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D15 AS (
+CREATE TABLE intersected_domain_D15 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -316,7 +328,8 @@ CREATE TABLE intersected_D15 AS (
     WHERE d.domainNumb = 'D15'
   );
 
-COPY intersected_domain_D15 TO '/mnt/nvme/geodiversity/output/intersected_domain_D15.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D15) TO '/mnt/nvme/geodiversity/output/intersected_domain_D15.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D15 AS (
     SELECT 
@@ -330,7 +343,7 @@ CREATE TABLE stats_domain_D15 AS (
 
 COPY stats_domain_D15 TO '/mnt/nvme/geodiversity/output/stats_domain_D15.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D16 AS (
+CREATE TABLE intersected_domain_D16 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -338,7 +351,8 @@ CREATE TABLE intersected_D16 AS (
     WHERE d.domainNumb = 'D16'
   );
 
-COPY intersected_domain_D16 TO '/mnt/nvme/geodiversity/output/intersected_domain_D16.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D16) TO '/mnt/nvme/geodiversity/output/intersected_domain_D16.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D16 AS (
     SELECT 
@@ -352,7 +366,7 @@ CREATE TABLE stats_domain_D16 AS (
 
 COPY stats_domain_D16 TO '/mnt/nvme/geodiversity/output/stats_domain_D16.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D17 AS (
+CREATE TABLE intersected_domain_D17 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -360,7 +374,8 @@ CREATE TABLE intersected_D17 AS (
     WHERE d.domainNumb = 'D17'
   );
 
-COPY intersected_domain_D17 TO '/mnt/nvme/geodiversity/output/intersected_domain_D17.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D17) TO '/mnt/nvme/geodiversity/output/intersected_domain_D17.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D17 AS (
     SELECT 
@@ -374,7 +389,7 @@ CREATE TABLE stats_domain_D17 AS (
 
 COPY stats_domain_D17 TO '/mnt/nvme/geodiversity/output/stats_domain_D17.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D18 AS (
+CREATE TABLE intersected_domain_D18 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -382,7 +397,8 @@ CREATE TABLE intersected_D18 AS (
     WHERE d.domainNumb = 'D18'
   );
 
-COPY intersected_domain_D18 TO '/mnt/nvme/geodiversity/output/intersected_domain_D18.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D18) TO '/mnt/nvme/geodiversity/output/intersected_domain_D18.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D18 AS (
     SELECT 
@@ -396,7 +412,7 @@ CREATE TABLE stats_domain_D18 AS (
 
 COPY stats_domain_D18 TO '/mnt/nvme/geodiversity/output/stats_domain_D18.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D19 AS (
+CREATE TABLE intersected_domain_D19 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -404,7 +420,8 @@ CREATE TABLE intersected_D19 AS (
     WHERE d.domainNumb = 'D19'
   );
 
-COPY intersected_domain_D19 TO '/mnt/nvme/geodiversity/output/intersected_domain_D19.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D19) TO '/mnt/nvme/geodiversity/output/intersected_domain_D19.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D19 AS (
     SELECT 
@@ -418,7 +435,7 @@ CREATE TABLE stats_domain_D19 AS (
 
 COPY stats_domain_D19 TO '/mnt/nvme/geodiversity/output/stats_domain_D19.csv' WITH (HEADER, DELIMITER ',');
 
-CREATE TABLE intersected_D20 AS (
+CREATE TABLE intersected_domain_D20 AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -426,7 +443,8 @@ CREATE TABLE intersected_D20 AS (
     WHERE d.domainNumb = 'D20'
   );
 
-COPY intersected_domain_D20 TO '/mnt/nvme/geodiversity/output/intersected_domain_D20.csv' WITH (HEADER, DELIMITER ',');
+COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_D20) TO '/mnt/nvme/geodiversity/output/intersected_domain_D20.csv' WITH (HEADER, DELIMITER ',');
 
 CREATE TABLE stats_domain_D20 AS (
     SELECT 

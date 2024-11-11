@@ -17,7 +17,7 @@ for (i in seq_along(unique_domain_ids)) {
   domain_id <- unique_domain_ids[i]
   
   # Create the SQL script for creating the spatial intersection table
-  intersection_sql <- sprintf("CREATE TABLE intersected_%s AS (
+  intersection_sql <- sprintf("CREATE TABLE intersected_domain_%s AS (
     SELECT e.*, d.domainNumb
     FROM elevation_with_na e
     JOIN domain d
@@ -26,7 +26,8 @@ for (i in seq_along(unique_domain_ids)) {
   );", domain_id, domain_id)
   
   # Create the SQL script for saving statistics to a CSV file
-  copy1_sql <- sprintf("COPY intersected_domain_%s TO '/mnt/nvme/geodiversity/output/intersected_domain_%s.csv' WITH (HEADER, DELIMITER ',');", domain_id, domain_id)
+  copy1_sql <- sprintf("COPY (SELECT domainNumb, elevation, x, y, tile_id FROM
+                      intersected_domain_%s) TO '/mnt/nvme/geodiversity/output/intersected_domain_%s.csv' WITH (HEADER, DELIMITER ',');", domain_id, domain_id)
   
   # Create the SQL script for creating the statistics table
   stats_sql <- sprintf("CREATE TABLE stats_domain_%s AS (
