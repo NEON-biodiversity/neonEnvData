@@ -16,11 +16,14 @@
 generate_sql_scripts <- function(csv_file_paths, output_directory) {
   # Start with the SQL command to create the 'elevation' table
   create_table_sql <- "
+  INSTALL spatial; 
+  LOAD spatial; 
   CREATE TABLE IF NOT EXISTS elevation (
     x DECIMAL(9,6), 
     y DECIMAL(8,6), 
     elevation VARINT, 
-    tile_id VARCHAR
+    tile_id VARCHAR, 
+    geom GEOMETRY
   );\n\n"
   
   # Create a list to hold SQL commands for each latitude degree
@@ -35,7 +38,7 @@ generate_sql_scripts <- function(csv_file_paths, output_directory) {
     latitude_degree <- substr(file_name, 6, 8)
     
     # Generate the SQL command for each file
-    sql_command <- paste0("INSERT INTO elevation SELECT round(x, 6), round(y, 6), elevation, tile_id FROM '", csv_file, "';\n")
+    sql_command <- paste0("INSERT INTO elevation SELECT round(x, 6), round(y, 6), elevation, tile_id, ST_Transform(ST_Point(y, x), 'EPSG:4326', 'EPSG:5070') AS geom FROM '", csv_file, "';\n")
     
     # Append the command to the corresponding latitude degree in the list
     if (!latitude_degree %in% names(sql_commands_by_latitude)) {
@@ -58,7 +61,26 @@ generate_sql_scripts <- function(csv_file_paths, output_directory) {
 # source("./R/config.R")
 data_dir <- "/mnt/nvme/geodiversity/csvs"
 # data_dir <- "/mnt/home/kapsarke/Documents/AIS/Data_Raw/2015/"
-csv_files <- list.files(data_dir, pattern = ".csv", full.names = TRUE)
+
+
+# Generate tile list (run on personal computer)
+# tiles <- st_read("./data/L0/SRTM_tiles/srtm_grid_1deg.shp") %>% st_transform("EPSG:5070")
+# dom <- st_read("./data/L0/NEON_domains/NEON_domains.shp") %>%
+#   st_union() %>%
+#   st_transform("EPSG:5070")
+# tile_list <-tiles[st_intersects(dom, tiles, sparse=FALSE),] %>% st_drop_geometry()
+# tile_list <- paste0("/mnt/nvme/geodiversity/csvs/SRTM_", tile_list$id, ".csv")
+# write.csv(tile_list, "./data/L0/tile_list.csv")
+
+# Load tile_list 
+tile_list <- read.csv("/mnt/nvme/geodiversity/tile_list.csv")
+
+csv_files <- list.files("/mnt/nvme/geodiversity/csvs", pattern = ".csv", full.names = TRUE)
+# csv_files <- csv_files[substr(basename(csv_files), 9, 9) == "W"]
+# csv_files <- csv_files[as.numeric(substr(basename(csv_files), 10, 12)) > 60] # > 60 West bc it's positive rn
+csv_files <- csv_files[csv_files %in% tile_list$x]
+
+# csv_files <- list.files(data_dir, pattern = ".csv", full.names = TRUE)
 
 # Output directory for SQL files
 output_directory <- "/mnt/nvme/geodiversity/sql_scripts"
