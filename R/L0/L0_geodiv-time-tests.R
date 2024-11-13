@@ -15,21 +15,26 @@ library(tidyverse)
 library(terra)
 
 # Laod data 
-data(orforest)
-orf <- terra::unwrap(orforest) 
-orf <- terra::crop(orf, terra::ext(orf[1:100, 1:100, drop=FALSE]))
+# data(orforest)
+# orf <- terra::unwrap(orforest) 
+# orf <- terra::crop(orf, terra::ext(orf[1:100, 1:100, drop=FALSE]))
+ras <- test
+
 
 # Define a list of input variables as strings
-metrics <- list("sa", "sq", "s10z", "sdq", "sdq6", "sdr", "sbi", "sci", "ssk", 
-             "sku", "sds", "sfd", "srw", "std", "svi", "stxr", "ssc", "sv", 
-             "sph", "sk", "smean", "svk", "spk", "scl", "sdc")
+# metrics <- list("sa", "sq", "s10z", "sdq", "sdq6", "sdr", "sbi", "sci", "ssk", 
+#              "sku", "sds", "sfd", "srw", "std", "svi", "stxr", "ssc", "sv", 
+#              "sph", "sk", "smean", "svk", "spk", "scl", "sdc")
+
+metrics <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "sds", "std")
 
 matrix_sizes <- list(matrix(1, nrow = 3, ncol = 3),
                      matrix(1, nrow = 5, ncol = 5), 
                      matrix(1, nrow = 7, ncol = 7))
 
-raster_sizes <- list(terra::crop(orf, terra::ext(orf[1:20, 1:20, drop=FALSE])),
-                     terra::crop(orf, terra::ext(orf[1:10, 1:10, drop=FALSE])))
+raster_sizes <- list(ras)
+                     # terra::crop(ras, terra::ext(ras[1:20, 1:20, drop=FALSE])),
+                     # terra::crop(ras, terra::ext(ras[1:10, 1:10, drop=FALSE])))
 
 # Initialize an empty data frame to store the results
 result_df <- data.frame(
@@ -90,8 +95,8 @@ time_function <- function(raster_layer, function_name) {
 
 # Use sapply to apply time_function to each metric
 results <- sapply(metrics[-length(metrics)], FUN = function(name) {
-  result <- time_function(orf, name)
-  dimensions <- paste(dim(orf), collapse = "x")
+  result <- time_function(ras, name)
+  dimensions <- paste(dim(ras), collapse = "x")
   return(c(Metric = name, Raster_Dimensions = dimensions, Time_Taken = result$runtime, Result = result$result))
 }, simplify = "data.frame")
 
