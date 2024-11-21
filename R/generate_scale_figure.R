@@ -17,7 +17,7 @@ dom_radii <- st_read(paste0(data_dir, "NEON_spatial/EPSG5070/domain_radii.shp"),
 dom <- st_read(paste0(data_dir, "NEON_spatial/EPSG5070/NEON_domains.shp"), quiet = TRUE)
 
 # Refactor function
-refactor_code <- function(site_code, site, plt, plt_radii, plt_circle_center, site_radii, site_circle_center, dom_radii, dom) {
+generate_scale_plots <- function(site_code, site, plt, plt_radii, plt_circle_center, site_radii, site_circle_center, dom_radii, dom) {
   # Subset data based on the input site_code
   site_data <- site[site$siteID == site_code,]
   traps_data <- plt[grep(site_code, plt$plotID),]
@@ -44,7 +44,7 @@ refactor_code <- function(site_code, site, plt, plt_radii, plt_circle_center, si
       plot.title = element_blank()
     )
   
-  ggsave(filename = paste0("./figures/", site_code, "_plot.png"), plot = fig_plot, width = 8, height = 6, dpi = 300)
+  # ggsave(filename = paste0("./figures/", site_code, "_plot.png"), plot = fig_plot, width = 8, height = 6, dpi = 300)
   
   # Second plot
   fig_site_footprint <- ggplot() +
@@ -60,12 +60,12 @@ refactor_code <- function(site_code, site, plt, plt_radii, plt_circle_center, si
       plot.title = element_blank()
     )
   
-  ggsave(filename = paste0("./figures/", site_code, "_site_footprint.png"), plot = fig_site_footprint, width = 8, height = 6, dpi = 300)
+  # ggsave(filename = paste0("./figures/", site_code, "_site_footprint.png"), plot = fig_site_footprint, width = 8, height = 6, dpi = 300)
   
   # Third plot
   fig_site_radii <- ggplot() +
     geom_sf(data = radii_data, fill = "#44aea3") +
-    geom_sf(data = site_data, fill = NA, color = "white", size = 0.7) +
+    geom_sf(data = site_data, fill = NA, color = "white", lwd=1) +
     geom_sf(data = plots_data, shape = 21, fill = "#b8e6a5", color = "black", size = 3) +
     theme_minimal() +
     theme(
@@ -76,7 +76,7 @@ refactor_code <- function(site_code, site, plt, plt_radii, plt_circle_center, si
       axis.title = element_blank(),
       plot.title = element_blank()
     )
-  
+
   ggsave(filename = paste0("./figures/", site_code, "_site_radius.png"), plot = fig_site_radii, width = 8, height = 6, dpi = 300)
   
   # Fourth plot (dom_radii)
@@ -98,7 +98,7 @@ refactor_code <- function(site_code, site, plt, plt_radii, plt_circle_center, si
       plot.title = element_blank()
     )
   
-  ggsave(filename = paste0("./figures/", site_code, "_dom_radius.png"), plot = fig_dom_radii, width = 8, height = 6, dpi = 300)
+  # ggsave(filename = paste0("./figures/", site_code, "_dom_radius.png"), plot = fig_dom_radii, width = 8, height = 6, dpi = 300)
   
   # Fifth plot (dom_footprint)
   fig_dom_footprint <- ggplot() +
@@ -114,10 +114,28 @@ refactor_code <- function(site_code, site, plt, plt_radii, plt_circle_center, si
       plot.title = element_blank()
     )
   
-  ggsave(filename = paste0("./figures/", site_code, "_dom_footprint.png"), plot = fig_dom_footprint, width = 8, height = 6, dpi = 300)
+  # ggsave(filename = paste0("./figures/", site_code, "_dom_footprint.png"), plot = fig_dom_footprint, width = 8, height = 6, dpi = 300)
+
+  text_plot <- ggplot() + 
+    theme_void() +  # A blank theme
+    geom_text(aes(x = 0.5, y = 0.5, label = site_code), size = 10)
+  
+  # Now combine the plots
+  # Arrange the plots in a grid layout
+  combined_plot <- plot_grid(
+    plot_grid(text_plot, fig_plot, ncol = 2, rel_widths = c(1, 1)),  # First row
+    plot_grid(fig_site_footprint, fig_site_radii, ncol = 2),  # Second row
+    plot_grid(fig_dom_footprint, fig_dom_radii, ncol = 2),  # Third row
+    nrow = 3,
+    align = 'v'
+  )
+  
+  # ggsave(filename = paste0("./figures/", site_code, "_combined_plot.png"), plot = combined_plot, width = 6, height = 9, dpi = 300)
+
+    
 }
 
 # Example usage:
 lapply(unique(site$siteID), function(x){
-  refactor_code(x, site, plt, plt_radii, plt_circle_center, site_radii, site_circle_center, dom_radii, dom)
+  generate_scale_plots(x, site, plt, plt_radii, plt_circle_center, site_radii, site_circle_center, dom_radii, dom)
 })
