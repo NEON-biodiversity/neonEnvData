@@ -1,0 +1,17 @@
+#!/bin/bash -login 
+
+
+#SBATCH -A data-machine
+#SBATCh --nodelist acm-049 
+#SBATCH -J geodiv 
+#SBATCH --mem-per-cpu=100GB 
+#SBATCH --cpus-per-task=20
+#SBATCH --time=24:00:00
+
+module purge
+module load  GDAL/3.7.1-foss-2023a UDUNITS R/4.3.2 PROJ
+
+Rscript /mnt/home/kapsarke/Documents/geodiversity/R/L1/L1-calculate_geodiv_metrics.R
+
+
+#SBATCH --output=%j.SLURMout
