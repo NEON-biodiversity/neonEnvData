@@ -32,7 +32,7 @@ output_dir <- "/mnt/scratch/plz-lab/geodiversity/output/intersected_rasters"
 # Set up parallel backend
 ## MSU HPCC: https://wiki.hpcc.msu.edu/display/ITH/R+workshop+tutorial#Rworkshoptutorial-Submittingparalleljobstotheclusterusing{doParallel}:singlenode,multiplecores
 # Request a single node (this uses the "multicore" functionality)
-registerDoParallel(cores=as.numeric(Sys.getenv("SLURM_CPUS_ON_NODE")[1]))
+# registerDoParallel(cores=as.numeric(Sys.getenv("SLURM_CPUS_ON_NODE")[1]))
 
 # Loop through sets of polygons and process
 for (i in 2){
@@ -44,24 +44,29 @@ for (i in 2){
   }
 
   # create a blank list to store the results 
-  rasters_intersected=list()
+  # rasters_intersected=list()
+  metrics_values <- list()
   
   # Process each file in parallel
-  rasters_intersected <- foreach(j=1:length(polygons$geometry), .packages = c("terra", "sf")) %dopar% {
+  for(j in 1:length(polygons$geometry)) {
+  # metrics_values <- foreach(j=1:length(polygons$geometry), .packages = c("terra", "sf")) %dopar% {
+  # rasters_intersected <- foreach(j=1:length(polygons$geometry), .packages = c("terra", "sf")) %dopar% {
 
       polygon <- polygons[j, ]
       
-      out_path <- if (!is.null(out_dir)) {
-        file.path(out_dir, paste0("intersected_raster_", j, ".tif"))
-      } else {
-        NULL
-      }
+      # out_path <- if (!is.null(output_dir)) {
+      #   file.path(output_dir, paste0("intersected_raster_", j, ".tif"))
+      # } else {
+      #   NULL
+      # }
       
-      srtm_intersection(srtm_tiles, srtm_tile_files, polygon)
+      temp <- srtm_intersection(srtm_tiles, srtm_tile_files, polygon, out_path)
+      output <- calculate_geodiversity_metrics(temp, metrics_list)
+      metrics_values[[j]] <- output
     }
 
   # Calculate geodiversity metrics
-  metrics_values <- lapply(rasters_intersected, function(x){calculate_geodiversity_metrics(x, metrics_list)})
+  # metrics_values <- lapply(rasters_intersected, function(x){calculate_geodiversity_metrics(x, metrics_list)})
   
   metrics_df <- as.data.frame(do.call(rbind, metrics_values))
   
@@ -70,6 +75,6 @@ for (i in 2){
   
   # Save updated polygon
   output_path <- paste0("/mnt/scratch/plz-lab/geodiversity/output/polys_EPSG5070_intersected/", spatial_poly_names[[i]])
-  st_write(out_polys, output_path, overwrite = TRUE)
+  # st_write(out_polys, output_path, overwrite = TRUE)
   print(paste0("Saved processed polygon ", i, " to ", output_path))
 }
