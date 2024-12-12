@@ -11,7 +11,7 @@
 
 
 intersect_raster_with_polygon <- function(pol, raster, save_path = NULL){
-  out_ras <- terra::crop(raster, st_bbox(pol)) %>%
+  out_ras <- terra::crop(raster, ext(pol)) %>%
     terra::mask(pol)
   
   # Optionally save the intersected raster
@@ -34,7 +34,7 @@ srtm_intersection <- function(srtm_tiles, srtm_tile_files, polygon, save_path = 
   temp <- lapply(tiles, rast)
   if (length(temp) > 1) {
     raster_intersected <- do.call(terra::mosaic, temp) %>% 
-      intersect_raster_with_polygon(., polygon)
+      intersect_raster_with_polygon(polygon, .)
   } else {
     raster_intersected <- 
       intersect_raster_with_polygon(polygon, temp[[1]])
