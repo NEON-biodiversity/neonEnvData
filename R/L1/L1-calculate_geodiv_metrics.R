@@ -48,7 +48,8 @@ for (i in 2){
   metrics_values <- list()
   
   # Process each file in parallel
-  for(j in 1:length(polygons$geometry)) {
+  for(j in 20) {
+  # for(j in 1:length(polygons$geometry)) {
   # metrics_values <- foreach(j=1:length(polygons$geometry), .packages = c("terra", "sf")) %dopar% {
   # rasters_intersected <- foreach(j=1:length(polygons$geometry), .packages = c("terra", "sf")) %dopar% {
 
