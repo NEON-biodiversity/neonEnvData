@@ -1,6 +1,8 @@
 # TITLE:            Climate Data Preprocessing
 # PROJECT:          NEON Geodiversity Analysis
 # AUTHORS:          Kelly Kapsar, Lala Kounta, Pat Bills, Phoebe Zarnetske 
+# DATA INPUT:       CHELSA bioclimatic variables (annual mean values 1981-2009)
+# DATA OUTPUT:      CHELSA bioclimatic rasters projected to EPSG:5070 and cropped to North America
 # DATE:             December 2024
 # OVERVIEW:         This script crops and reprojects climate raster data in parallel
 # REQUIRES:         R libraries: sf, terra, doParallel, foreach
