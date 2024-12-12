@@ -1,4 +1,4 @@
-# NEON Geodiversity Analysis Repository
+# NEON Complementary Abiotic Data Layer Repository
 
 ## Table of Contents
 - [Introduction](#Introduction)
@@ -13,29 +13,29 @@
 
 ## Introduction
 
-This repository contains scripts and resources for analyzing geodiversity data as part of the NEON Geodiversity Analysis project. The project focuses on processing, integrating, and analyzing geospatial and climatic datasets to understand geodiversity patterns across NEON domains. The scripts facilitate data cleaning, geodiversity metric calculations, and integration of climate and elevation data, supporting broader biodiversity research goals.
+This repository contains scripts and resources for analyzing abiotic data sources as complimentary data layers for [National Ecological Observatory (NEON)](https://www.neonscience.org/) research projects. Initial data sources include elevation data from NASA Shuttle Radar Topography Mission (SRTM) and temperature and precipitation data from the Climatologies at high resolution for the Earth's land surface areas (CHELSA). The repository contains code for extracting climate and elevation data across multiple spatial scales relevant to NEON (e.g., plot, site, domain).
 
 ## Workflow
 
 The high-level workflow includes the following steps:
 1. **Data Preprocessing**: Load and clean raw spatial data (polygons and SRTM rasters).
 2. **Intersection and Reprojection**: Align and crop raster datasets to relevant spatial polygons.
-3. **Metric Calculations**: Compute geodiversity metrics (e.g., roughness, slope, standard deviation) from processed rasters.
+3. **Metric Calculations**: Compute geodiversity metrics (e.g., roughness, slope, standard deviation) and mean/sd of climate biovars from processed rasters.
 4. **Data Integration**: Combine climate and geodiversity data for each spatial unit.
-5. **Visualization and Output**: Generate elevation plots and save processed datasets for further analysis.
+5. **Visualization and Output**: Generate  plots and save processed datasets for further analysis.
 
 ## Location of Data
 
-Processed and intermediate datasets are stored on the MSU HPCC cluster in the following directories:
-- **Spatial Data**: `/mnt/scratch/plz-lab/geodiversity/spatial_data/`
-- **Processed Outputs**: `/mnt/scratch/plz-lab/geodiversity/output/`
+- **SRTM Data**: SRTM_gl1_v003 available from [NASA EarthData](https://search.earthdata.nasa.gov/)
+- UDPATE **CHELSA Data**:
+- **NEON Spatial Data**: NEON Domains, Terrestrial Sampling Boundaries, and Sites shapefiles downloaded from [NEON Spatial Data site](https://www.neonscience.org/data-samples/data/spatial-data-maps). 
 
 ## Spatiotemporal Extent and Resolution
 
-- **Spatial Extent**: NEON sites across North America.
-- **Spatial Resolution**: Varies depending on the input data, typically 30m for SRTM rasters.
-- **Temporal Extent**: Data include static geophysical variables (e.g., elevation) and climate data spanning historical periods (e.g., 1950-2010).
-- **Temporal Resolution**: Climate data processed as averages or summaries at relevant temporal scales.
+- **Spatial Extent**: Variable: NEON plots, sites and domains across North America.
+- **Spatial Resolution**: SRTM = ~30 m (1 arc second); CHELSA = ~1 km (30 arc seconds)
+- **Temporal Extent**: Data include static geophysical variables (e.g., elevation) and climate data spanning historical periods (1981-2009).
+- **Temporal Resolution**: Climate data processed as averages across years.
 
 ## Usage
 
@@ -51,33 +51,61 @@ The scripts in this repository require the following software:
 
 ### File Naming Conventions
 
-- **Data Files**: Files are named to reflect their content and processing step, e.g., `site_radii_clim_elev.shp` for polygons integrated with climate and elevation data.
-- **Scripts**: Scripts follow a clear naming convention:
-  - `L1-functions.R`: Shared functions for intersection and metric calculations.
-  - `process_polygons.R`: Script for polygon processing and geodiversity metric calculations.
+- **Scripts**: Scripts follow a clear naming convention of "stepNumber-dataSource_task.R". For example: 
+  - `1_srtm_unzip_reproject.R`: Step 1 script takes SRTM data inputs, unzips them, and reprojects them. 
+  
+Scripts are stored follosing the [Environmental Data Initiative's L0 (raw data), L1 (processed data), and L2 (value added data) folder structure](https://edirepository.org/resources/designing-a-data-package). Scripts with an "x" at the beginning of the name are either not part of the data analysis pipeline or are in progress. 
 
 ## Scripts
 
-### `L1-functions.R`
+### `1_srtm_unzip_reproject.R`
 
-- **Purpose**: Defines utility functions for spatial data processing, including raster-polygon intersection and geodiversity metric calculations.
-- **Inputs**: Spatial polygons (e.g., NEON site boundaries) and raster datasets (e.g., SRTM elevation data).
-- **Outputs**: Processed rasters or calculated metrics, depending on the function.
+- **Purpose**: Script for cleaning and reprojecting geodiversity raster data
+- **Inputs**: 
+  - SRTM elevation data in zipped files (1 .hgt file per tile)
+  - Shapefile of SRTM tiles
+  - NEON domain data 
+- **Outputs**: SRTM data cropped to extent of NEON domains and reprojected to EPSG:5070. Saved as .tif files. 
 
-### `process_polygons.R`
+### `1-chelsa_crop_reproject.R`
 
-- **Purpose**: Processes spatial polygons to calculate geodiversity metrics and integrate with climate data.
+- **Purpose**: This script crops and reprojects climate raster data in parallel
 - **Inputs**:
-  - Polygons: `/mnt/scratch/plz-lab/geodiversity/spatial_data/polys_EPSG5070/`
-  - Rasters: `/mnt/scratch/plz-lab/geodiversity/SRTM_gl1_v003/tiles_EPSG5070`
-- **Outputs**: Shapefiles with geodiversity and climate metrics, saved to `/mnt/scratch/plz-lab/geodiversity/output/polys_EPSG5070_intersected/`.
+  - CHELSA bioclimatic variables (annual mean values 1981-2009) stored as individual tif files (1 per variable)
+- **Outputs**: CHELSA bioclimatic variables projected to EPSG:5070 and cropped to North America stored as individual tif files (1 per variable)
 
-### `plot_site_elevations.R`
+### `2-functions.R`
+
+- **Purpose**: Defines utility functions for use in other step 2 scripts, including raster-polygon intersection and geodiversity metric calculations.
+- **Inputs**: NA (functions are sourced in other scripts)
+- **Outputs**: NA (functions are sourced in other scripts)
+
+### `2-srtm_extract_polys.R`
+
+- **Purpose**: Extract geodiversity metric values for NEON spatial data
+- **Inputs**: 
+  - SRTMGl3_v003 data processed in ./R/L0/1-srtm_unzip_reproject.R
+  - Shapefile of SRTM tiles
+  - NEON spatial data 
+- **Outputs**: 
+  - NEON spatial data frame with 1 column per geodiversity metric (saved as shapefile)
+
+### `2-chelsa_extract_polys.R`
+
+- **Purpose**: Extract biovar values for NEON spatial data
+- **Inputs**: 
+  - CHELSA climate rasters (output from 1-chelsa_crop_reproject.R)
+  - NEON spatial data 
+- **Outputs**: 
+  - NEON spatial data frame with 1 column per geodiversity metric (saved as shapefile)
+ 
+
+### `3-plot_site_rasters.R`
 
 - **Purpose**: Visualizes elevation data for NEON sites by intersecting SRTM rasters with site polygons and generating elevation plots.
 - **Inputs**:
-  - NEON site polygons: `/mnt/scratch/plz-lab/geodiversity/spatial_data/polys_EPSG5070/NEON_sites.shp`
-  - Raster files: `/mnt/scratch/plz-lab/geodiversity/SRTM_gl1_v003/tiles_EPSG5070`
+  - UPDATE  NEON site polygons: `/mnt/scratch/plz-lab/geodiversity/spatial_data/polys_EPSG5070/NEON_sites.shp`
+  - UPDATE  Raster files: `/mnt/scratch/plz-lab/geodiversity/SRTM_gl1_v003/tiles_EPSG5070`
 - **Outputs**: PNG plots of site elevations, saved in `/mnt/scratch/plz-lab/geodiversity/output/figures/`.
 
 ## Contributors
@@ -90,5 +118,5 @@ The scripts in this repository require the following software:
 ## Contact Information
 
 For inquiries related to this repository, please contact:
-- **Primary Contact**: [Insert primary contact name and email]
-- **Technical Questions**: [Insert technical contact name and email]
+- **Primary Contact**: Phoebe Zarnetske (plz@msu.edu)
+- **Technical Questions**: Kelly Kapsar (kelly.kapsar@gmail.com)
