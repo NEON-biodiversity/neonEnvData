@@ -58,6 +58,12 @@ process_polygon <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_p
     # Calculate geodiversity metrics for the intersected raster
     output <- calculate_geodiversity_metrics(temp, metrics_list)
     metrics_values[[j]] <- output
+    
+    write.csv(output, paste0("/mnt/scratch/plz-lab/geodiversity/geodiv_metrics_", polygon$domainNumb, ".csv"))
+    write.csv(output, paste0("/mnt/home/kapsarke/Documents/geodiversity/geodiv_metrics_", polygon$siteID, ".csv"))
+
+    print(paste0("Metrics calculated for ", polygon$siteID))
+    print(paste0("Metrics calculated for ", polygon$domainNumb))
   }
   
   # Combine metrics into a data frame
@@ -106,117 +112,117 @@ process_polygon(srtm_tiles = srtm_tiles,
 # })
 
 
-#################################################################################
-# Time trials for number of tiles to mosaic
-# Initialize an empty data frame to store results
-results <- data.frame(
-  num_rasters = integer(),
-  time_seconds = numeric()
-)
-
-polygon <- st_read(spatial_poly_paths[[2]])[1,]
-intersecting_tiles <- srtm_tiles[st_intersects(polygon, srtm_tiles, sparse = FALSE), ]
-
-if(length(intersecting_tiles$id) == 0){return(NA)}
-tiles <- srtm_tile_files %>%
-  grep(paste(unique(intersecting_tiles$id), collapse = "|"), ., value = TRUE)
-# print(length(tiles))
-temp <- lapply(tiles, rast)
-
-# Loop through increasing numbers of rasters
-for (i in 13:20) {
-  # Subset the raster list
-  raster_subset <- temp[1:i]
-
-  # Time the mosaicking process
-  start_time <- Sys.time()
-  raster_intersected <- do.call(terra::mosaic, raster_subset)
-  test <-
-    terra::crop(raster_intersected, st_bbox(polygon)) %>%
-    terra::mask(., polygon)
-  end_time <- Sys.time()
-
-  # Calculate the elapsed time in seconds
-  elapsed_time <- as.numeric(difftime(end_time, start_time, units = "secs"))
-
-  # Append results to the data frame
-  results <- rbind(results, data.frame(num_rasters = i, time_seconds = elapsed_time, method = "Original (All at once)"))
-}
-
-# Plot the results
-ggplot(results, aes(x = num_rasters, y = time_seconds)) +
-  geom_line() +
-  geom_point() +
-  labs(
-    title = "Time to Mosaic Rasters vs Number of Rasters",
-    x = "Number of Rasters",
-    y = "Time to Mosaic (seconds)"
-  ) +
-  theme_minimal()
-
-#### Mosaic of mosaics trial 
-# Loop through increasing numbers of rasters
-# new_results <- data.frame(
+# #################################################################################
+# # Time trials for number of tiles to mosaic
+# # Initialize an empty data frame to store results
+# results <- data.frame(
 #   num_rasters = integer(),
 #   time_seconds = numeric()
 # )
-
-
-for (i in 13:20) {
-  # Subset the raster list
-  raster_subset <- temp[1:i]
-  
-  # Split the raster subset into two halves
-  midpoint <- ceiling(length(raster_subset) / 2)
-  raster_half1 <- raster_subset[1:midpoint]
-  raster_half2 <- raster_subset[(midpoint + 1):length(raster_subset)]
-  
-  # Time the mosaicking process
-  start_time <- Sys.time()
-  
-  # Create the two intermediate mosaics
-  mosaic1 <- do.call(terra::mosaic, raster_half1)
-  mosaic2 <- do.call(terra::mosaic, raster_half2)
-  
-  # Create the final mosaic from the two intermediate mosaics
-  raster_intersected <- terra::mosaic(mosaic1, mosaic2)
-  
-  # Crop and mask with the polygon
-  test <-
-    terra::crop(raster_intersected, st_bbox(polygon)) %>%
-    terra::mask(., polygon)
-  
-  end_time <- Sys.time()
-  
-  # Calculate the elapsed time in seconds
-  elapsed_time <- as.numeric(difftime(end_time, start_time, units = "secs"))
-  
-  # Append results to the data frame
-  new_results <- rbind(new_results, data.frame(num_rasters = i, time_seconds = elapsed_time, method =  "Mosaic of Mosaics (In chunks)"))
-  
-  # Log progress
-  print(paste0("Processed ", i, " rasters in ", elapsed_time, " seconds."))
-}
-
-
-# Combine results from both methods into one data frame
-results$method <- "Original (All at once)"
-new_results$method <- "Mosaic of Mosaics (In chunks)"
-
-combined_results <- rbind(results, new_results)
-
-# Create the ggplot object
-comparison_plot <- ggplot(combined_results, aes(x = num_rasters, y = time_seconds, color = method)) +
-  geom_line(size = 1) +
-  geom_point(size = 2) +
-  labs(
-    title = "Performance Comparison: Original vs Mosaic of Mosaics",
-    x = "Number of Rasters",
-    y = "Time (seconds)",
-    color = "Method"
-  ) +
-  theme_minimal(base_size = 14)
-
-# Display the plot
-print(comparison_plot)
-
+# 
+# polygon <- st_read(spatial_poly_paths[[2]])[1,]
+# intersecting_tiles <- srtm_tiles[st_intersects(polygon, srtm_tiles, sparse = FALSE), ]
+# 
+# if(length(intersecting_tiles$id) == 0){return(NA)}
+# tiles <- srtm_tile_files %>%
+#   grep(paste(unique(intersecting_tiles$id), collapse = "|"), ., value = TRUE)
+# # print(length(tiles))
+# temp <- lapply(tiles, rast)
+# 
+# # Loop through increasing numbers of rasters
+# for (i in 13:20) {
+#   # Subset the raster list
+#   raster_subset <- temp[1:i]
+# 
+#   # Time the mosaicking process
+#   start_time <- Sys.time()
+#   raster_intersected <- do.call(terra::mosaic, raster_subset)
+#   test <-
+#     terra::crop(raster_intersected, st_bbox(polygon)) %>%
+#     terra::mask(., polygon)
+#   end_time <- Sys.time()
+# 
+#   # Calculate the elapsed time in seconds
+#   elapsed_time <- as.numeric(difftime(end_time, start_time, units = "secs"))
+# 
+#   # Append results to the data frame
+#   results <- rbind(results, data.frame(num_rasters = i, time_seconds = elapsed_time, method = "Original (All at once)"))
+# }
+# 
+# # Plot the results
+# ggplot(results, aes(x = num_rasters, y = time_seconds)) +
+#   geom_line() +
+#   geom_point() +
+#   labs(
+#     title = "Time to Mosaic Rasters vs Number of Rasters",
+#     x = "Number of Rasters",
+#     y = "Time to Mosaic (seconds)"
+#   ) +
+#   theme_minimal()
+# 
+# #### Mosaic of mosaics trial 
+# # Loop through increasing numbers of rasters
+# # new_results <- data.frame(
+# #   num_rasters = integer(),
+# #   time_seconds = numeric()
+# # )
+# 
+# 
+# for (i in 13:20) {
+#   # Subset the raster list
+#   raster_subset <- temp[1:i]
+#   
+#   # Split the raster subset into two halves
+#   midpoint <- ceiling(length(raster_subset) / 2)
+#   raster_half1 <- raster_subset[1:midpoint]
+#   raster_half2 <- raster_subset[(midpoint + 1):length(raster_subset)]
+#   
+#   # Time the mosaicking process
+#   start_time <- Sys.time()
+#   
+#   # Create the two intermediate mosaics
+#   mosaic1 <- do.call(terra::mosaic, raster_half1)
+#   mosaic2 <- do.call(terra::mosaic, raster_half2)
+#   
+#   # Create the final mosaic from the two intermediate mosaics
+#   raster_intersected <- terra::mosaic(mosaic1, mosaic2)
+#   
+#   # Crop and mask with the polygon
+#   test <-
+#     terra::crop(raster_intersected, st_bbox(polygon)) %>%
+#     terra::mask(., polygon)
+#   
+#   end_time <- Sys.time()
+#   
+#   # Calculate the elapsed time in seconds
+#   elapsed_time <- as.numeric(difftime(end_time, start_time, units = "secs"))
+#   
+#   # Append results to the data frame
+#   new_results <- rbind(new_results, data.frame(num_rasters = i, time_seconds = elapsed_time, method =  "Mosaic of Mosaics (In chunks)"))
+#   
+#   # Log progress
+#   print(paste0("Processed ", i, " rasters in ", elapsed_time, " seconds."))
+# }
+# 
+# 
+# # Combine results from both methods into one data frame
+# results$method <- "Original (All at once)"
+# new_results$method <- "Mosaic of Mosaics (In chunks)"
+# 
+# combined_results <- rbind(results, new_results)
+# 
+# # Create the ggplot object
+# comparison_plot <- ggplot(combined_results, aes(x = num_rasters, y = time_seconds, color = method)) +
+#   geom_line(size = 1) +
+#   geom_point(size = 2) +
+#   labs(
+#     title = "Performance Comparison: Original vs Mosaic of Mosaics",
+#     x = "Number of Rasters",
+#     y = "Time (seconds)",
+#     color = "Method"
+#   ) +
+#   theme_minimal(base_size = 14)
+# 
+# # Display the plot
+# print(comparison_plot)
+# 
