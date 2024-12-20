@@ -16,7 +16,7 @@ library(terra)     # For raster data manipulation
 library(stringr)   # For string operations
 
 # Source custom functions (e.g., intersect_raster_with_polygon)
-source("./R/L1/L1-functions.R")
+source("./R/L1/2-functions.R")
 
 # Load shapefiles from the specified directory
 spatial_names <- grep(

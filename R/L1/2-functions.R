@@ -19,7 +19,7 @@
 #' intersected <- intersect_raster_with_polygon(my_polygon, my_raster)
 #' intersected <- intersect_raster_with_polygon(my_polygon, my_raster, "output.tif")
 intersect_raster_with_polygon <- function(pol, raster, save_path = NULL) {
-  out_ras <- terra::crop(raster, ext(pol)) %>%
+  out_ras <- terra::crop(raster, st_bbox(pol)) %>%
     terra::mask(pol)
   
   if (!is.null(save_path)) {
@@ -44,18 +44,20 @@ intersect_raster_with_polygon <- function(pol, raster, save_path = NULL) {
 srtm_intersection <- function(srtm_tiles, srtm_tile_files, polygon, save_path = NULL) {
   intersecting_tiles <- srtm_tiles[st_intersects(polygon, srtm_tiles, sparse = FALSE), ]
   
+  if(length(intersecting_tiles$id) == 0){return(NA)}
   tiles <- srtm_tile_files %>%
     grep(paste(unique(intersecting_tiles$id), collapse = "|"), ., value = TRUE)
+  # print(length(tiles))
   
   temp <- lapply(tiles, rast)
-  
+
   if (length(temp) > 1) {
-    raster_intersected <- do.call(terra::mosaic, temp) %>%
-      intersect_raster_with_polygon(polygon, .)
+    raster_mosaic <- do.call(terra::mosaic, temp)
+    raster_intersected <- intersect_raster_with_polygon(polygon, raster_mosaic)
   } else {
     raster_intersected <- intersect_raster_with_polygon(polygon, temp[[1]])
   }
-  
+
   return(raster_intersected)
 }
 
