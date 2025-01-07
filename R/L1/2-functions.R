@@ -37,30 +37,39 @@ intersect_raster_with_polygon <- function(pol, raster, save_path = NULL) {
 #' @param srtm_tile_files A character vector of file paths to SRTM raster files.
 #' @param polygon An `sf` polygon object.
 #' @param save_path Optional file path to save the intersected raster.
+#' @param ID identifying name for virtual raster 
 #' @return A `SpatRaster` object of the intersected and mosaicked raster.
 #' @examples
 #' intersected <- srtm_intersection(srtm_tiles, srtm_tile_files, my_polygon)
 #' intersected <- srtm_intersection(srtm_tiles, srtm_tile_files, my_polygon, "output.tif")
-srtm_intersection <- function(srtm_tiles, srtm_tile_files, polygon, save_path = NULL) {
-  intersecting_tiles <- srtm_tiles[st_intersects(polygon, srtm_tiles, sparse = FALSE), ]
-  
-  if(length(intersecting_tiles$id) == 0){return(NA)}
-  tiles <- srtm_tile_files %>%
-    grep(paste(unique(intersecting_tiles$id), collapse = "|"), ., value = TRUE)
-  # print(length(tiles))
-  
-  temp <- lapply(tiles, rast)
+srtm_intersection <- function(srtm_tiles, srtm_tile_files, polygon, save_path = NULL, ID = NULL) {
+    # Find intersecting tiles
+    intersecting_tiles <- srtm_tiles[st_intersects(polygon, srtm_tiles, sparse = FALSE), ]
+    
+    # Return NA if no intersecting tiles are found
+    if (length(intersecting_tiles$id) == 0) {
+      return(NA)
+    }
+    
+    # Filter tile files that match intersecting tiles
+    tiles <- srtm_tile_files %>%
+      grep(paste(unique(intersecting_tiles$id), collapse = "|"), ., value = TRUE)
+    
+    output_vrt <- paste0("/mnt/scratch/kapsarke/geodiversity/output/virtual_rasters/", ID, ".vrt")
 
-  if (length(temp) > 1) {
-    raster_mosaic <- do.call(terra::mosaic, temp)
-    raster_intersected <- intersect_raster_with_polygon(polygon, raster_mosaic)
-  } else {
-    raster_intersected <- intersect_raster_with_polygon(polygon, temp[[1]])
-  }
+    # Create the virtual raster
+    vr <- vrt(tiles, filename = output_vrt, overwrite=T)
 
+    # Mosaic and intersect rasters
+    # if (length(tiles) > 1) {
+    raster_intersected <- intersect_raster_with_polygon(polygon, vr)
+    # } else {
+    #   raster_intersected <- intersect_raster_with_polygon(polygon, temp[[1]])
+    # }
+
+  # Return the resulting raster
   return(raster_intersected)
 }
-
 #' Calculate geodiversity metrics
 #'
 #' This function calculates a list geodiversity metrics for a given raster.

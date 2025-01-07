@@ -13,9 +13,9 @@ library(geodiv)
 library(terra)
 library(sf)
 library(dplyr)
-library(foreach)
-library(doParallel)
-library(ggplot2)
+# library(foreach)
+# library(doParallel)
+# library(ggplot2)
 
 # Load custom functions
 source("./R/L1/2-functions.R")
@@ -35,7 +35,7 @@ source("./R/L1/2-functions.R")
 #' metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "sds", "std2")
 #' spatial_poly <- st_read("path/to/polygon_file.shp")
 #' process_polygon(srtm_tiles, srtm_tile_files, spatial_poly, "polygon_file.shp", metrics_list, output_dir)
-process_polygon <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_poly_name, metrics_list, output_dir) {
+process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_poly_name, metrics_list, output_dir) {
   
   # Ensure output directory exists
   if (!dir.exists(output_dir)) {
@@ -50,20 +50,24 @@ process_polygon <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_p
   # Process each polygon
   for (j in 1:length(spatial_poly$geometry)) {
     polygon <- spatial_poly[j, ]
-    print(polygon$domainName)
+    
+    # Generate name for virtual raster 
+    nm <- ifelse("plotID" %in% colnames(polygon), polygon$plotID, 
+          ifelse("siteID" %in% colnames(polygon), polygon$siteID, 
+          ifelse("domainNumb" %in% colnames(polygon), polygon$domainNumb, ID)))
     
     # Intersect SRTM raster with the polygon
-    temp <- srtm_intersection(srtm_tiles, srtm_tile_files, polygon)
+    temp <- srtm_intersection(srtm_tiles, srtm_tile_files, polygon, ID=nm)
     
     # Calculate geodiversity metrics for the intersected raster
     output <- calculate_geodiversity_metrics(temp, metrics_list)
     metrics_values[[j]] <- output
     
-    write.csv(output, paste0("/mnt/scratch/plz-lab/geodiversity/geodiv_metrics_", polygon$domainNumb, ".csv"))
-    write.csv(output, paste0("/mnt/home/kapsarke/Documents/geodiversity/geodiv_metrics_", polygon$siteID, ".csv"))
+    # write.csv(output, paste0("/mnt/scratch/kapsarke/geodiversity/output/geodiv_metric_csv_domains/geodiv_metrics_", polygon$domainNumb, ".csv"))
+    # write.csv(output, paste0("/mnt/home/kapsarke/Documents/geodiversity/geodiv_metrics_", polygon$domainNumb, ".csv"))
 
-    print(paste0("Metrics calculated for ", polygon$siteID))
-    print(paste0("Metrics calculated for ", polygon$domainNumb))
+    # print(paste0("Metrics calculated for ", polygon$siteID))
+    print(paste0("Metrics calculated for ", nm))
   }
   
   # Combine metrics into a data frame
@@ -82,16 +86,17 @@ process_polygon <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_p
 
 
 # Example data setup (ensure paths and data files exist as expected)
-srtm_tiles <- st_read("/mnt/scratch/plz-lab/geodiversity/spatial_data/SRTM_tiles/srtm_grid_1deg.shp") %>%
-  st_transform(crs = 5070)
-srtm_tile_files <- list.files("/mnt/scratch/plz-lab/geodiversity/SRTM_gl1_v003/tiles_EPSG5070", full.names = TRUE)
-spatial_poly_paths <- grep(".shp", list.files("/mnt/scratch/plz-lab/geodiversity/spatial_data/polys_EPSG5070/", full.names = TRUE), value = TRUE)
-spatial_poly_names <- grep(".shp", list.files("/mnt/scratch/plz-lab/geodiversity/spatial_data/polys_EPSG5070/"), value = TRUE)
+srtm_tiles <- st_read("/mnt/scratch/kapsarke/geodiversity/spatial_data/SRTM_tiles/srtm_grid_1deg.shp") %>%
+  st_crop(xmin = -180, xmax = -50, ymin = 0, ymax=90) %>% 
+  st_transform(crs = "EPSG:5070")
+srtm_tile_files <- list.files("/mnt/scratch/kapsarke/geodiversity/SRTM_gl1_v003/tiles_EPSG5070", full.names = TRUE)
+spatial_poly_paths <- grep(".shp", list.files("/mnt/scratch/kapsarke/geodiversity/spatial_data/polys_EPSG5070/", full.names = TRUE), value = TRUE)
+spatial_poly_names <- grep(".shp", list.files("/mnt/scratch/kapsarke/geodiversity/spatial_data/polys_EPSG5070/"), value = TRUE)
 metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "sds", "std2")
-output_dir <- "/mnt/scratch/plz-lab/geodiversity/output/polys_EPSG5070_intersected/"
+output_dir <- "/mnt/scratch/kapsarke/geodiversity/output/polys_EPSG5070_intersected_test/"
 
 
-process_polygon(srtm_tiles = srtm_tiles,
+process_polygons(srtm_tiles = srtm_tiles,
                 srtm_tile_files = srtm_tile_files,
                 spatial_poly = st_read(spatial_poly_paths[[2]]),
                 spatial_poly_name = spatial_poly_names[[2]],
@@ -101,7 +106,7 @@ process_polygon(srtm_tiles = srtm_tiles,
 # Apply the updated function to each file
 # lapply(seq_along(spatial_poly_paths), function(i) {
 #   spatial_poly <- st_read(spatial_poly_paths[i])
-#   process_polygon(
+#   process_polygons(
 #     srtm_tiles = srtm_tiles,
 #     srtm_tile_files = srtm_tile_files,
 #     spatial_poly = spatial_poly,
