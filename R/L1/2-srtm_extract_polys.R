@@ -66,8 +66,13 @@ process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_
     # Calculate geodiversity metrics for the intersected raster
     output <- calculate_geodiversity_metrics(temp, metrics_list)
     
-    output[["mean"]] <- global(temp, "mean", na.rm=T)[,1]
-    output[["sd"]] <- global(temp, "sd", na.rm=T)[,1]
+    if(class(temp) == "SpatRaster"){
+      output[["mean"]] <- global(temp, "mean", na.rm=T)[,1]
+      output[["sd"]] <- global(temp, "sd", na.rm=T)[,1]
+    }else{
+      output[["mean"]] <- NA
+      output[["sd"]] <- NA
+    }
     
     # Reorder so mean and sd are first 
     output <- output[c("mean", "sd", setdiff(names(output), c("mean", "sd")))]
@@ -90,7 +95,7 @@ process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_
   output_path <- file.path(output_dir, paste0("processed_", spatial_poly_name))
   
   # Save the updated polygons with metrics
-  st_write(out_polys, output_path, overwrite = TRUE)
+  st_write(out_polys, output_path, append=FALSE)
   print(paste0("Saved processed polygons to ", output_path))
 }
 
@@ -109,8 +114,8 @@ output_dir <- "/mnt/scratch/kapsarke/geodiversity/output/polys_EPSG5070_intersec
 
 process_polygons(srtm_tiles = srtm_tiles,
                 srtm_tile_files = srtm_tile_files,
-                spatial_poly = st_read(spatial_poly_paths[[3]]),
-                spatial_poly_name = spatial_poly_names[[3]],
+                spatial_poly = st_read(spatial_poly_paths[[6]]),
+                spatial_poly_name = spatial_poly_names[[6]],
                 metrics_list = metrics_list,
                 output_dir = output_dir)
 
