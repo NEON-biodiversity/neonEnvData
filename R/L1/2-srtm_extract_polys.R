@@ -56,18 +56,28 @@ process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_
           ifelse("siteID" %in% colnames(polygon), polygon$siteID, 
           ifelse("domainNumb" %in% colnames(polygon), polygon$domainNumb, ID)))
     
+    print(paste0(nm, ": Processing."))
+    
     # Intersect SRTM raster with the polygon
     temp <- srtm_intersection(srtm_tiles, srtm_tile_files, polygon, ID=nm)
     
+    print(paste0(nm, ": Raster intersection complete."))
+    
     # Calculate geodiversity metrics for the intersected raster
     output <- calculate_geodiversity_metrics(temp, metrics_list)
+    
+    output[["mean"]] <- global(temp, "mean", na.rm=T)[,1]
+    output[["sd"]] <- global(temp, "sd", na.rm=T)[,1]
+    
+    # Reorder so mean and sd are first 
+    output <- output[c("mean", "sd", setdiff(names(output), c("mean", "sd")))]
+    
     metrics_values[[j]] <- output
     
     # write.csv(output, paste0("/mnt/scratch/kapsarke/geodiversity/output/geodiv_metric_csv_domains/geodiv_metrics_", polygon$domainNumb, ".csv"))
     # write.csv(output, paste0("/mnt/home/kapsarke/Documents/geodiversity/geodiv_metrics_", polygon$domainNumb, ".csv"))
 
-    # print(paste0("Metrics calculated for ", polygon$siteID))
-    print(paste0("Metrics calculated for ", nm))
+    print(paste0(nm, ": Metrics calculated."))
   }
   
   # Combine metrics into a data frame
@@ -92,14 +102,15 @@ srtm_tiles <- st_read("/mnt/scratch/kapsarke/geodiversity/spatial_data/SRTM_tile
 srtm_tile_files <- list.files("/mnt/scratch/kapsarke/geodiversity/SRTM_gl1_v003/tiles_EPSG5070", full.names = TRUE)
 spatial_poly_paths <- grep(".shp", list.files("/mnt/scratch/kapsarke/geodiversity/spatial_data/polys_EPSG5070/", full.names = TRUE), value = TRUE)
 spatial_poly_names <- grep(".shp", list.files("/mnt/scratch/kapsarke/geodiversity/spatial_data/polys_EPSG5070/"), value = TRUE)
-metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "sds", "std2")
+# metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "sds", "std2")
+metrics_list <- c("sq", "sbi", "ssk", "sku", "sfd")
 output_dir <- "/mnt/scratch/kapsarke/geodiversity/output/polys_EPSG5070_intersected_test/"
 
 
 process_polygons(srtm_tiles = srtm_tiles,
                 srtm_tile_files = srtm_tile_files,
-                spatial_poly = st_read(spatial_poly_paths[[2]]),
-                spatial_poly_name = spatial_poly_names[[2]],
+                spatial_poly = st_read(spatial_poly_paths[[3]]),
+                spatial_poly_name = spatial_poly_names[[3]],
                 metrics_list = metrics_list,
                 output_dir = output_dir)
 

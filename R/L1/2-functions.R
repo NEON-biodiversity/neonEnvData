@@ -81,6 +81,7 @@ srtm_intersection <- function(srtm_tiles, srtm_tile_files, polygon, save_path = 
 #' metrics <- calculate_geodiversity_metrics(my_raster, c("std1", "std2", "roughness"))
 calculate_geodiversity_metrics <- function(raster, metrics_list) {
   metrics_values <- sapply(metrics_list, function(metric) {
+    print(metric)
     if (metric == "std") {
       stop("Error: Please specify 'std1' or 'std2' as the metric name.")
     }
