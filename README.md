@@ -1,4 +1,4 @@
-# NEON Complementary Abiotic Data Layer Repository
+# neonEnvData: Complementary Environmental Data Layers for NEON
 
 ## Table of Contents
 - [Introduction](#Introduction)
