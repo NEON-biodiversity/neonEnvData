@@ -20,6 +20,9 @@ library(dplyr)
 # Load custom functions
 source("./R/L1/2-functions.R")
 
+# Load configuration file
+source("config.R")
+
 #' Geodiversity Metric Calculation for a Single Spatial Polygon File
 #'
 #' This function processes a single spatial polygon file and calculates geodiversity metrics using SRTM raster data.
@@ -101,15 +104,13 @@ process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_
 
 
 # Example data setup (ensure paths and data files exist as expected)
-srtm_tiles <- st_read("/mnt/scratch/kapsarke/geodiversity/spatial_data/SRTM_tiles/srtm_grid_1deg.shp") %>%
-  st_crop(xmin = -180, xmax = -50, ymin = 0, ymax=90) %>% 
-  st_transform(crs = "EPSG:5070")
-srtm_tile_files <- list.files("/mnt/scratch/kapsarke/geodiversity/SRTM_gl1_v003/tiles_EPSG5070", full.names = TRUE)
-spatial_poly_paths <- grep(".shp", list.files("/mnt/scratch/kapsarke/geodiversity/spatial_data/polys_EPSG5070/", full.names = TRUE), value = TRUE)
-spatial_poly_names <- grep(".shp", list.files("/mnt/scratch/kapsarke/geodiversity/spatial_data/polys_EPSG5070/"), value = TRUE)
-# metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "sds", "std2")
+srtm_tiles <- st_read(elev_tiles) %>%
+  st_crop(xmin = -180, xmax = -50, ymin = 0, ymax = 90) %>% 
+  st_transform(crs = prj)
+srtm_tile_files <- list.files(tiles_epsg, full.names = TRUE)
+spatial_poly_paths <- grep(".shp", list.files(neon_dir, full.names = TRUE), value = TRUE)
+spatial_poly_names <- grep(".shp", list.files(neon_dir), value = TRUE)
 metrics_list <- c("sq", "sbi", "ssk", "sku", "sfd")
-output_dir <- "/mnt/scratch/kapsarke/geodiversity/output/polys_EPSG5070_intersected_test/"
 
 
 process_polygons(srtm_tiles = srtm_tiles,
@@ -128,7 +129,7 @@ process_polygons(srtm_tiles = srtm_tiles,
 #     spatial_poly = spatial_poly,
 #     spatial_poly_name = spatial_poly_names[i],
 #     metrics_list = metrics_list,
-#     output_dir = output_dir
+#     output_dir = output_clim_elev
 #   )
 # })
 

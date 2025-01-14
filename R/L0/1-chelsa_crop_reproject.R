@@ -25,10 +25,10 @@ extent <- ext(xmin, xmax, ymin, ymax)
 
 # List climate data files and their names
 clim_data <- list.files(
-  "/mnt/research/ibeem/climate_NEON/biovars/1981-2009",
+  raw_clim_dir,
   full.names = TRUE
 )
-clim_names <- list.files("/mnt/research/ibeem/climate_NEON/biovars/1981-2009")
+clim_names <- list.files(raw_clim_dir)
 
 # Set up parallel processing backend
 # Use the number of cores available on the MSU HPCC cluster
@@ -53,7 +53,7 @@ cropped_projected <- foreach(i = 1:length(clim_data), .packages = c("terra")) %d
   # Save the processed raster to the output directory
   writeRaster(
     projected,
-    paste0("/mnt/scratch/plz-lab/geodiversity/spatial_data/climate_EPSG5070/", clim_names[[i]]),
+    paste0(clim_tif, clim_names[[i]]),
     overwrite = TRUE
   )
   

@@ -3,7 +3,7 @@
 # AUTHORS:          Kelly Kapsar, Pat Bills, Phoebe Zarnetske 
 # COLLABORATORS:    Lala Kounta
 # DATA INPUT:       SRTMGl3_v003 data downloaded from NASA EarthData 
-# DATA OUTPUT:      Processed SRTM tiles in EPSG:5070 projection
+# DATA OUTPUT:      Processed SRTM tiles in specified projection (.R/config.R)
 # DATE:             August 2024
 # OVERVIEW:         Script for cleaning and reprojecting geodiversity raster data
 # REQUIRES:         R libraries: terra, sf, dplyr
@@ -19,13 +19,13 @@ source("./R/config.R")
 
 # Load shapefiles of polygons with geodiversity data
 spat_data <- list.files(
-  "/mnt/scratch/plz-lab/geodiversity/spatial_data/polys_EPSG5070/",
+  neon_dir,
   full.names = TRUE
 ) %>%
   grep("\\.shp$", ., value = TRUE)
 
 # Load and transform SRTM tile grid shapefile to the desired projection
-srtm_tiles <- st_read("/mnt/scratch/plz-lab/geodiversity/spatial_data/SRTM_tiles/srtm_grid_1deg.shp") %>%
+srtm_tiles <- st_read(elev_tiles) %>%
   st_transform(prj)
 
 ################################################################################
@@ -46,7 +46,7 @@ for (i in 1:length(all_tiles$id)) {
   print(paste0("Started tile ", all_tiles$id[i]))
   
   # Locate the specific SRTM tile file based on the tile ID
-  tile <- list.files("/mnt/scratch/plz-lab/geodiversity/SRTM_gl1_v003", full.names = TRUE) %>%
+  tile <- list.files(raw_elev_dir, full.names = TRUE) %>%
     grep(paste(all_tiles$id[i], collapse = "|"), ., value = TRUE) %>%
     grep("\\.zip$", ., value = TRUE)
   
@@ -56,11 +56,11 @@ for (i in 1:length(all_tiles$id)) {
   # Unzip and load the raster tile
   raster_tile <- unzip(
     tile, 
-    exdir = "/mnt/scratch/plz-lab/geodiversity/SRTM_gl1_v003/unzipped_hgt"
+    exdir = elev_hgt
   ) %>% rast()
   
   # Create a template raster for reprojection (to EPSG:5070 with target resolution)
-  template <- project(raster_tile, "EPSG:5070", res = target_resolution)
+  template <- project(raster_tile, prj, res = target_resolution)
   
   # Reproject the raster tile using the template
   reprojected_tile <- project(raster_tile, template)
@@ -69,8 +69,8 @@ for (i in 1:length(all_tiles$id)) {
   terra::writeRaster(
     reprojected_tile,
     paste0(
-      "/mnt/scratch/plz-lab/geodiversity/SRTM_gl1_v003/tiles_EPSG5070/",
-      all_tiles$id[i], "_EPSG5070.tif"
+      elev_tif,
+      all_tiles$id[i], "_", prj_name, ".tif"
     )
   )
   

@@ -8,9 +8,6 @@ library(ggspatial)
 # Load in data_dir location
 source("./R/config.R")
 
-# Specify projection 
-prj <- "EPSG:5070" # Albers equal area 
-
 # Define functions 
 id_circle_center <- function(d){
   du <- st_union(d)
@@ -32,7 +29,7 @@ max_dist_to_circle_center <- function(d){
 # Load and clean data 
 
 # Import NEON data 
-dom <- st_read(paste0(data_dir, "NEON_spatial/NEON_Domains/NEON_Domains.shp"), quiet=T) %>% 
+dom <- st_read(paste0(neon_raw, "/NEON_Domains.shp"), quiet=T) %>% 
   st_transform(prj) %>%
   # Standardize naming with plot and site-level 
   rename(domainNumb = DomainID, 
@@ -45,9 +42,9 @@ dom <- st_read(paste0(data_dir, "NEON_spatial/NEON_Domains/NEON_Domains.shp"), q
     domainName = first(domainName), 
     geometry = st_union(geometry)
   ) # %>% 
-  # st_write(paste0(out_dir,"EPSG5070/NEON_domains.shp"), append=F)
+  st_write(paste0(neon_dir,"/NEON_domains.shp"), append=F)
 
-site <- st_read(paste0(data_dir, "NEON_spatial/NEON_sites/terrestrialSamplingBoundaries.shp"), quiet=T)  %>% 
+site <- st_read(paste0(neon_raw, "/terrestrialSamplingBoundaries.shp"), quiet=T)  %>% 
   st_transform(prj) %>% 
   # Join multiple polygons with same siteID
   group_by(siteID) %>%
@@ -56,15 +53,15 @@ site <- st_read(paste0(data_dir, "NEON_spatial/NEON_sites/terrestrialSamplingBou
     domainNumb = first(domainNumb),
     geometry = st_union(geometry)
   ) # %>%
-  st_write(paste0(out_dir,"EPSG5070/NEON_sites.shp"), append=F)
+  st_write(paste0(neon_dir,"/NEON_sites.shp"), append=F)
 
 
-plt <- st_read(paste0(data_dir, "NEON_spatial/NEON_TOS_Plot_Points/NEON_TOS_Plot_Points.shp"), quiet=T)  %>% 
+plt <- st_read(paste0(neon_raw, "All_NEON_TOS_Plot_Points_V11.shp"), quiet=T)  %>% 
   filter(subtype == "mammalGrid") %>% 
   st_transform(prj) %>%
   # Add in domain information for plots 
   left_join(., st_drop_geometry(site %>% select(siteID, domainName, domainNumb)), by = c("siteID")) # %>% 
-# st_write(paste0(out_dir, "EPSG5070/NEON_small_mammal_plots.shp"), append=F)
+# st_write(paste0(neon_dir, "/NEON_small_mammal_plots.shp"), append=F)
 
 # Determine small mammal trapping presence at each site
 site <- site %>% 
@@ -93,7 +90,7 @@ site <- site %>%
 # site$bioclim_id[site$siteName == "North Sterling, CO Additional TOS Boundary"] <- "STER_TOS"
 # site$bioclim_id[site$siteName == "Treehaven Additional TOS Boundary"] <- "TREE_TOS"
 
-# st_write(site, paste0(out_dir,"EPSG5070/NEON_sites/NEON_field_sites_mamm.shp"))
+# st_write(site, paste0(neon_dir,"/NEON_sites/NEON_field_sites_mamm.shp"))
 
 
 ################################################################################
@@ -149,29 +146,29 @@ plt_circle_center <- plt_nested %>%
   dplyr::select(plotID, siteID, domainName, domainNumb, circle_center) %>% 
   rename(geometry = circle_center) %>% 
   st_as_sf() # %>%
-  # st_write(paste0(out_dir, "EPSG5070/plot_circle_centers.shp"), append=F)
+  # st_write(paste0(neon_dir, "/plot_circle_centers.shp"), append=F)
 
 plt_radii <- plt_nested %>% 
   dplyr::select(plotID, siteID, domainName, domainNumb, plot_poly) %>% 
   rename(geometry = plot_poly) %>% 
-  st_as_sf() # %>% 
-  # st_write(paste0(out_dir, "EPSG5070/plot_radii.shp"), append=F)
+  st_as_sf() %>% 
+  st_write(paste0(neon_dir, "/plot_radii.shp"), append=F)
 
 site_circle_center <- site_nested %>% 
   dplyr::select(siteID, siteID, domainName, domainNumb, circle_center) %>% 
   rename(geometry = circle_center) %>% 
   st_as_sf() # %>%  
-  # st_write(paste0(out_dir, "EPSG5070/site_circle_centers.shp"), append=F)
+  # st_write(paste0(neon_dir, "/site_circle_centers.shp"), append=F)
 
 site_radii <- site_nested %>% 
   dplyr::select(siteID, domainName, domainNumb, site_poly) %>% 
   rename(geometry = site_poly) %>% 
-  st_as_sf() # %>%  
-  # st_write(paste0(out_dir, "EPSG5070/site_radii.shp"), append=F)
+  st_as_sf() %>%  
+  st_write(paste0(neon_dir, "/site_radii.shp"), append=F)
 
 dom_radii <- site_nested %>% 
   dplyr::select(siteID, domainName, domainNumb, circle_center) %>% 
   rename(geometry = circle_center) %>% # 100 km centroid around 
   st_as_sf() %>% 
-  st_buffer(100000) # %>% 
-  # st_write(paste0(out_dir, "EPSG5070/domain_radii.shp"), append=F)
+  st_buffer(100000) %>% 
+  st_write(paste0(neon_dir, "/domain_radii.shp"), append=F)

@@ -15,26 +15,23 @@ library(sf)        # For spatial data handling
 library(terra)     # For raster data manipulation
 library(stringr)   # For string operations
 
-# Source custom functions (e.g., intersect_raster_with_polygon)
+# Load configuration file
 source("./R/L1/2-functions.R")
+source("./R/config.R")
 
 # Load shapefiles from the specified directory
 spatial_names <- grep(
   ".shp", 
-  list.files("/mnt/scratch/plz-lab/geodiversity/output/polys_EPSG5070_intersected/", 
-             full.names = TRUE), 
+  list.files(neon_dir, full.names = TRUE), 
   value = TRUE
 )
 
 # Read spatial polygon files into a list
 spatial_polys <- lapply(spatial_names, st_read)
 
-# Output directory for processed shapefiles
-out_dir <- "/mnt/scratch/plz-lab/geodiversity/output/polys_EPSG5070_clim_elev/"
-
 # Load climate rasters into a list
 clim_ras <- list.files(
-  "/mnt/scratch/plz-lab/geodiversity/spatial_data/climate_EPSG5070",
+  clim_tif,
   full.names = TRUE
 ) %>% 
   lapply(terra::rast)
@@ -77,11 +74,8 @@ for (i in 1:length(spatial_polys)) {
   file_name <- sub(".*/([^/]+)\\.[^\\.]+$", "\\1", spatial_names[i])
   
   # Save the updated polygons as a new shapefile
-  st_write(polygons, paste0(out_dir, file_name, "_clim_elev.shp"))
+  st_write(polygons, paste0(output_dir, file_name, "_clim.shp"))
   
   # Replace the processed polygons in the list
   spatial_polys[[i]] <- polygons
 }
-
-# Example of reading the output for testing (optional)
-# test <- st_read("/mnt/scratch/plz-lab/geodiversity/output/polys_EPSG5070_clim_elev/plot_radii_clim_elev.shp")
