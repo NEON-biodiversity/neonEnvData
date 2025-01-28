@@ -40,6 +40,8 @@ clim_ras <- list.files(
 for (i in 1:length(spatial_polys)) {
   polygons <- spatial_polys[[i]]  # Select the current polygon set
   
+  print(paste0("Processing ", spatial_names[[i]]))
+  
   # Add columns for each climate variable to the polygon data
   for (k in 1:length(clim_ras)) {
     parts <- strsplit(names(clim_ras[[k]]), "_")[[1]]
@@ -54,16 +56,19 @@ for (i in 1:length(spatial_polys)) {
     
     # Process each climate raster for the current polygon
     for (m in 1:length(clim_ras)) {
-      ras <- clim_ras[[m]] %>% intersect_raster_with_polygon(st_buffer(poly, 10), .)
-      
+      if(st_is_empty(poly$geometry)){
+        next
+      }else(
+        ras <- clim_ras[[m]] %>% intersect_raster_with_polygon(st_buffer(poly, 10), .)
+      )
       # Extract variable name from raster name
       parts <- strsplit(names(ras), "_")[[1]]
       var_name <- parts[2]
       
-      print(var_name)  # Display the variable being processed
+      # print(var_name)  # Display the variable being processed
       
       # Calculate the mean value of the raster for the polygon
-      val <- mean(terra::values(ras), na.rm = TRUE)
+        val <- mean(terra::values(ras), na.rm = TRUE)
       
       # Assign the mean value to the respective column in the polygons data
       polygons[j, var_name] <- val
@@ -74,7 +79,7 @@ for (i in 1:length(spatial_polys)) {
   file_name <- sub(".*/([^/]+)\\.[^\\.]+$", "\\1", spatial_names[i])
   
   # Save the updated polygons as a new shapefile
-  st_write(polygons, paste0(output_dir, file_name, "_clim.shp"))
+  st_write(polygons, paste0(output_dir, "/", file_name, "_clim.shp"))
   
   # Replace the processed polygons in the list
   spatial_polys[[i]] <- polygons

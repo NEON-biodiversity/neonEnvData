@@ -13,9 +13,12 @@
 library(terra)  # For raster data manipulation
 library(sf)     # For spatial data manipulation
 library(dplyr)  # For data wrangling
+library(doParallel) # For parallel processing
+library(foreach)   # For parallel iteration
 
 # Source configuration settings (e.g., custom projections or paths)
-source("./R/config.R")
+# source("./R/config.R")
+source("../config.R")
 
 # Load shapefiles of polygons with geodiversity data
 spat_data <- list.files(
@@ -37,8 +40,16 @@ all_doms <- st_read(spat_data[2]) %>% st_union()
 # Filter SRTM tiles that intersect with the union of all domains
 all_tiles <- srtm_tiles[st_intersects(srtm_tiles, all_doms, sparse = FALSE), ]
 
+
+# Set up parallel processing backend
+# Use the number of cores available on the MSU HPCC cluster
+registerDoParallel(cores = as.numeric(Sys.getenv("SLURM_CPUS_ON_NODE")[1]))
+
+# Process each climate data file in parallel
+cropped_projected <- foreach(i = 1:length(all_tiles$id), .packages = c("terra", "dplyr")) %dopar% {
+  
 # Loop over each intersecting tile to reproject and save it
-for (i in 1:length(all_tiles$id)) {
+# for (i in 1:length(all_tiles$id)) {
   # Start timer for performance tracking
   start_time <- proc.time()
   
@@ -70,8 +81,9 @@ for (i in 1:length(all_tiles$id)) {
     reprojected_tile,
     paste0(
       elev_tif,
+      "/",
       all_tiles$id[i], "_", prj_name, ".tif"
-    )
+    ), overwrite=T
   )
   
   # Print completion message for the current tile
@@ -80,3 +92,4 @@ for (i in 1:length(all_tiles$id)) {
   # Print the time taken to process the current tile
   print(proc.time() - start_time)
 }
+

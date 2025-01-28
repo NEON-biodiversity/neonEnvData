@@ -1,0 +1,16 @@
+#!/bin/bash -login 
+
+
+#SBATCH -A data-machine
+#SBATCH -J neonEnvData 
+#SBATCH --mem=1000GB 
+#SBATCH --cpus-per-task=100
+#SBATCH --time=8:00:00
+
+module purge
+module load  GDAL/3.7.1-foss-2023a UDUNITS R/4.3.2 PROJ
+
+Rscript /mnt/home/kapsarke/Documents/neonEnvData/R/L0/1-srtm_unzip_reproject.R
+
+
+#SBATCH --output=%j.SLURMout

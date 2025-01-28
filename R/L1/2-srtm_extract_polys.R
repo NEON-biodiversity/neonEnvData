@@ -18,10 +18,12 @@ library(dplyr)
 # library(ggplot2)
 
 # Load custom functions
-source("./R/L1/2-functions.R")
+# source("./R/L1/2-functions.R")
+source("2-functions.R")
 
 # Load configuration file
-source("config.R")
+# source("./R/config.R")
+source("../config.R")
 
 #' Geodiversity Metric Calculation for a Single Spatial Polygon File
 #'
@@ -95,7 +97,7 @@ process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_
   out_polys <- cbind(spatial_poly, metrics_df)
   
   # Generate the output file path
-  output_path <- file.path(output_dir, paste0("processed_", spatial_poly_name))
+  output_path <- file.path(output_dir, paste0(spatial_poly_name, "_elev.shp"))
   
   # Save the updated polygons with metrics
   st_write(out_polys, output_path, append=FALSE)
@@ -107,31 +109,31 @@ process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_
 srtm_tiles <- st_read(elev_tiles) %>%
   st_crop(xmin = -180, xmax = -50, ymin = 0, ymax = 90) %>% 
   st_transform(crs = prj)
-srtm_tile_files <- list.files(tiles_epsg, full.names = TRUE)
-spatial_poly_paths <- grep(".shp", list.files(neon_dir, full.names = TRUE), value = TRUE)
-spatial_poly_names <- grep(".shp", list.files(neon_dir), value = TRUE)
+srtm_tile_files <- list.files(elev_tif, full.names = TRUE)
+spatial_poly_paths <- grep(".shp", list.files(output_dir, full.names = TRUE), value = TRUE)
+spatial_poly_names <- grep(".shp", list.files(output_dir), value = TRUE) %>% gsub("\\.shp$", "", .)
 metrics_list <- c("sq", "sbi", "ssk", "sku", "sfd")
 
 
-process_polygons(srtm_tiles = srtm_tiles,
-                srtm_tile_files = srtm_tile_files,
-                spatial_poly = st_read(spatial_poly_paths[[6]]),
-                spatial_poly_name = spatial_poly_names[[6]],
-                metrics_list = metrics_list,
-                output_dir = output_dir)
+# process_polygons(srtm_tiles = srtm_tiles,
+#                 srtm_tile_files = srtm_tile_files,
+#                 spatial_poly = st_read(spatial_poly_paths[[5]]),
+#                 spatial_poly_name = spatial_poly_names[[5]],
+#                 metrics_list = metrics_list,
+#                 output_dir = output_dir)
 
 # Apply the updated function to each file
-# lapply(seq_along(spatial_poly_paths), function(i) {
-#   spatial_poly <- st_read(spatial_poly_paths[i])
-#   process_polygons(
-#     srtm_tiles = srtm_tiles,
-#     srtm_tile_files = srtm_tile_files,
-#     spatial_poly = spatial_poly,
-#     spatial_poly_name = spatial_poly_names[i],
-#     metrics_list = metrics_list,
-#     output_dir = output_clim_elev
-#   )
-# })
+lapply(seq_along(spatial_poly_paths), function(i) {
+  spatial_poly <- st_read(spatial_poly_paths[i])
+  process_polygons(
+    srtm_tiles = srtm_tiles,
+    srtm_tile_files = srtm_tile_files,
+    spatial_poly = spatial_poly,
+    spatial_poly_name = spatial_poly_names[i],
+    metrics_list = metrics_list,
+    output_dir = output_dir
+  )
+})
 
 
 # #################################################################################

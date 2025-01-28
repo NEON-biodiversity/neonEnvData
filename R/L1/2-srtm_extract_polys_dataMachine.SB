@@ -3,14 +3,14 @@
 
 #SBATCH -A data-machine
 #SBATCH -J geodiv 
-#SBATCH --mem-per-cpu=75GB 
-#SBATCH --cpus-per-task=19
-#SBATCH --time=3:55:00
+#SBATCH --mem=1900GB 
+#SBATCH --cpus-per-task=100
+#SBATCH --time=48:00:00
 
 module purge
 module load  GDAL/3.7.1-foss-2023a UDUNITS R/4.3.2 PROJ
 
-Rscript /mnt/home/kapsarke/Documents/geodiversity/R/L1/L1-reproject_climate_data.R
+Rscript /mnt/home/kapsarke/Documents/neonEnvData/R/L1/2-srtm_extract_polys.R
 
 
 #SBATCH --output=%j.SLURMout

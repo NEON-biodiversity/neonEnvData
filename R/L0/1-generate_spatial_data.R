@@ -1,3 +1,11 @@
+# TITLE:            NEON Spatial Data Generation
+# PROJECT:          Neon Environmental Data 
+# AUTHORS:          Kelly Kapsar, Pat Bills, Phoebe Zarnetske 
+# COLLABORATORS:    Lala Kounta
+# DATA INPUT:       NEON domain, site, and plot data 
+# DATA OUTPUT:      Clean NEON domain and site footprints along with domain, site, and plot radii
+# DATE:             January 2025
+# OVERVIEW:         Script for cleaning and reprojecting NEON spatial data
 
 # Load packages
 library(tidyverse)
@@ -32,16 +40,9 @@ max_dist_to_circle_center <- function(d){
 dom <- st_read(paste0(neon_raw, "/NEON_Domains.shp"), quiet=T) %>% 
   st_transform(prj) %>%
   # Standardize naming with plot and site-level 
-  rename(domainNumb = DomainID, 
-         domainName = DomainName) %>% 
-  mutate(domainNumb = factor(sprintf("D%02d", domainNumb))) %>% 
+  rename(domainNumb = domainID) %>% 
+  mutate(domainNumb = factor(domainNumb)) %>% 
   select(domainName, domainNumb) %>% 
-  # Join together multiple polygons within same domain
-  group_by(domainNumb) %>% 
-  summarize(
-    domainName = first(domainName), 
-    geometry = st_union(geometry)
-  ) # %>% 
   st_write(paste0(neon_dir,"/NEON_domains.shp"), append=F)
 
 site <- st_read(paste0(neon_raw, "/terrestrialSamplingBoundaries.shp"), quiet=T)  %>% 
@@ -52,15 +53,15 @@ site <- st_read(paste0(neon_raw, "/terrestrialSamplingBoundaries.shp"), quiet=T)
     domainName = first(domainName),
     domainNumb = first(domainNumb),
     geometry = st_union(geometry)
-  ) # %>%
+  ) %>%
   st_write(paste0(neon_dir,"/NEON_sites.shp"), append=F)
 
 
-plt <- st_read(paste0(neon_raw, "All_NEON_TOS_Plot_Points_V11.shp"), quiet=T)  %>% 
+plt <- st_read(paste0(neon_raw, "/All_NEON_TOS_Plot_Points_V11.shp"), quiet=T)  %>% 
   filter(subtype == "mammalGrid") %>% 
   st_transform(prj) %>%
   # Add in domain information for plots 
-  left_join(., st_drop_geometry(site %>% select(siteID, domainName, domainNumb)), by = c("siteID")) # %>% 
+  left_join(., st_drop_geometry(site %>% select(siteID, domainName, domainNumb)), by = c("siteID"))  # %>% 
 # st_write(paste0(neon_dir, "/NEON_small_mammal_plots.shp"), append=F)
 
 # Determine small mammal trapping presence at each site
@@ -119,17 +120,16 @@ site <- site %>%
 
 
 ##### PLOT SCALE (MAMMALS) ##### 
-
-##### SITE SCALE ##### 
 plt_nested <- plt %>% 
   st_make_valid() %>% 
   nest(.by = c(plotID, plotType, siteID, domainName, domainNumb)) %>% 
   mutate(circle_center = lapply(data, function(x) id_circle_center(x)), 
          max_dist_circ = lapply(data, function(x) max_dist_to_circle_center(x))) %>% 
   unnest(cols = c(max_dist_circ, circle_center)) %>% 
-  mutate(plot_poly = st_buffer(circle_center, dist = 100))
+  mutate(plot_poly = st_buffer(circle_center, dist = plt_buff_dist))
 # proc.time()-start
 
+##### SITE SCALE ##### 
 # start <- proc.time()
 site_nested <- plt %>% 
   st_make_valid() %>% 
@@ -137,9 +137,7 @@ site_nested <- plt %>%
   mutate(circle_center = lapply(data, function(x) id_circle_center(x)), 
          max_dist_circ = lapply(data, function(x) max_dist_to_circle_center(x))) %>% 
   unnest(cols = c(max_dist_circ, circle_center)) %>%
-  mutate(buff_dist =15000) %>% 
-  # mutate(buff_dist = max(max_dist_circ)) %>% 
-  mutate(site_poly = st_buffer(circle_center, dist = buff_dist))
+  mutate(site_poly = st_buffer(circle_center, dist = site_buff_dist))
 # proc.time()-start
 
 plt_circle_center <- plt_nested %>% 
@@ -170,5 +168,5 @@ dom_radii <- site_nested %>%
   dplyr::select(siteID, domainName, domainNumb, circle_center) %>% 
   rename(geometry = circle_center) %>% # 100 km centroid around 
   st_as_sf() %>% 
-  st_buffer(100000) %>% 
+  st_buffer(dom_buff_dist) %>% 
   st_write(paste0(neon_dir, "/domain_radii.shp"), append=F)

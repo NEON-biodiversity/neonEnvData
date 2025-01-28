@@ -14,6 +14,10 @@ library(terra)     # For raster data manipulation
 library(doParallel) # For parallel processing
 library(foreach)   # For parallel iteration
 
+# Source configuration settings (e.g., custom projections or paths)
+# source("./R/config.R")
+source("../config.R")
+
 # Define the bounding box for cropping
 xmin <- -180  # Minimum longitude
 ymin <- 14    # Minimum latitude
@@ -53,7 +57,7 @@ cropped_projected <- foreach(i = 1:length(clim_data), .packages = c("terra")) %d
   # Save the processed raster to the output directory
   writeRaster(
     projected,
-    paste0(clim_tif, clim_names[[i]]),
+    paste0(clim_tif, "/", clim_names[[i]]),
     overwrite = TRUE
   )
   

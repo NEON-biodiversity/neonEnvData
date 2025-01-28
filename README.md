@@ -58,6 +58,13 @@ Scripts are stored follosing the [Environmental Data Initiative's L0 (raw data),
 
 ## Scripts
 
+### `1_generate_spatial_data.R`
+
+- **Purpose**: Script for cleaning NEON footprint data and generating radii for multiple spatial scales
+- **Inputs**: 
+  - NEON domain, site, and plot data 
+- **Outputs**: Clean NEON domain and site footprints along with domain, site, and plot radii
+
 ### `1_srtm_unzip_reproject.R`
 
 - **Purpose**: Script for cleaning and reprojecting geodiversity raster data
