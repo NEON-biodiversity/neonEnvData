@@ -42,7 +42,7 @@ intersect_raster_with_polygon <- function(pol, raster, save_path = NULL) {
 #' @examples
 #' intersected <- srtm_intersection(srtm_tiles, srtm_tile_files, my_polygon)
 #' intersected <- srtm_intersection(srtm_tiles, srtm_tile_files, my_polygon, "output.tif")
-srtm_intersection <- function(srtm_tiles, srtm_tile_files, polygon, save_path = NULL, ID = NULL) {
+srtm_intersection <- function(srtm_tiles, srtm_tile_files, polygon, save_path, ID = NULL) {
     # Find intersecting tiles
     intersecting_tiles <- srtm_tiles[st_intersects(polygon, srtm_tiles, sparse = FALSE), ]
     
@@ -55,7 +55,7 @@ srtm_intersection <- function(srtm_tiles, srtm_tile_files, polygon, save_path = 
     tiles <- srtm_tile_files %>%
       grep(paste(unique(intersecting_tiles$id), collapse = "|"), ., value = TRUE)
     
-    output_vrt <- paste0("/mnt/scratch/kapsarke/geodiversity/output/virtual_rasters/", ID, ".vrt")
+    output_vrt <- paste0(save_path, "/", ID, ".vrt")
 
     # Create the virtual raster
     vr <- vrt(tiles, filename = output_vrt, overwrite=T)
@@ -66,6 +66,10 @@ srtm_intersection <- function(srtm_tiles, srtm_tile_files, polygon, save_path = 
     # } else {
     #   raster_intersected <- intersect_raster_with_polygon(polygon, temp[[1]])
     # }
+    
+    output_ras <- paste0(save_path, "/masked_rasters/", ID, ".tif" )
+    
+    terra::writeRaster(raster_intersected, output_ras)
 
   # Return the resulting raster
   return(raster_intersected)

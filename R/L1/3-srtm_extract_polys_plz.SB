@@ -11,7 +11,7 @@
 module purge
 module load  GDAL/3.7.1-foss-2023a UDUNITS R/4.3.2 PROJ
 
-Rscript /mnt/home/kapsarke/Documents/geodiversity/R/L1/2-srtm_extract_polys.R
+Rscript /mnt/home/kapsarke/Documents/geodiversity/R/L1/3-srtm_extract_polys.R
 
 
 #SBATCH --output=%j.SLURMout
