@@ -60,4 +60,7 @@ figures/
 # API token file 
 R/config.R
 
+# SLURM output files 
+*.out
+
 
