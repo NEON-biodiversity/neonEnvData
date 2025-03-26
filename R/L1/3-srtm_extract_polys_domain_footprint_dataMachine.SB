@@ -1,0 +1,22 @@
+#!/bin/bash -login 
+
+
+#SBATCH -A data-machine
+#SBATCH -J geodiv 
+#SBATCH --mem=1900GB 
+#SBATCH --cpus-per-task=100
+#SBATCH --time=48:00:00
+# Mail type:
+#SBATCH --mail-type=ALL
+# Mail user:
+#SBATCH --mail-user=kapsarke@msu.edu
+# 
+#SBATCH --array=124-160
+
+# run R commandline with the Rscript command
+module purge
+module load  GDAL/3.7.1-foss-2023a UDUNITS R/4.3.2 PROJ
+
+Rscript /mnt/home/kapsarke/Documents/neonEnvData/R/L1/3-srtm_extract_polys_domain_footprint.R ${SLURM_ARRAY_TASK_ID} 
+
+#SBATCH --output=%j.SLURMout
