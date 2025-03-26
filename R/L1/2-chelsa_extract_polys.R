@@ -16,7 +16,7 @@ library(terra)     # For raster data manipulation
 library(stringr)   # For string operations
 
 # Load configuration file
-source("./R/L1/2-functions.R")
+source("./R/L1/2-3-functions.R")
 source("./R/config.R")
 
 # Load shapefiles from the specified directory
