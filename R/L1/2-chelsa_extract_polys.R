@@ -41,18 +41,14 @@ for (i in 1:length(spatial_polys)) {
   polygons <- spatial_polys[[i]]  # Select the current polygon set
   
   print(paste0("Processing ", spatial_names[[i]]))
-  
-  # Add columns for each climate variable to the polygon data
-  for (k in 1:length(clim_ras)) {
-    parts <- strsplit(names(clim_ras[[k]]), "_")[[1]]
-    var_name <- parts[2]  # Extract variable name (e.g., "bio1")
-    polygons[[var_name]] <- NA  # Initialize with NA values
-  }
-  
+
   # Loop through each polygon in the set
   for (j in 1:length(polygons$geometry)) {
     poly <- polygons[j, ]  # Select the current polygon
-    print(paste0("Working on ", poly$siteID))  # Display progress
+    
+    if("siteID" %in% colnames(polygons)){
+      print(paste0("Working on ", poly$siteID))  # Display progress
+    }else(print(paste0("Working on ", poly$domainNumb)))  # Display progress)
     
     # Process each climate raster for the current polygon
     for (m in 1:length(clim_ras)) {
@@ -63,7 +59,8 @@ for (i in 1:length(spatial_polys)) {
       )
       # Extract variable name from raster name
       parts <- strsplit(names(ras), "_")[[1]]
-      var_name <- parts[2]
+      num <- sub("bio", "", parts[2])
+      var_name <- paste0("bio", sprintf("%02d", as.integer(num)))
       
       # print(var_name)  # Display the variable being processed
       
@@ -79,7 +76,7 @@ for (i in 1:length(spatial_polys)) {
   file_name <- sub(".*/([^/]+)\\.[^\\.]+$", "\\1", spatial_names[i])
   
   # Save the updated polygons as a new shapefile
-  st_write(polygons, paste0(output_dir, "/", file_name, "_clim.shp"))
+  st_write(polygons, paste0(output_dir_clim, "/", file_name, ".shp"))
   
   # Replace the processed polygons in the list
   spatial_polys[[i]] <- polygons
