@@ -3,9 +3,9 @@
 
 #SBATCH -A data-machine
 #SBATCH -J geodiv 
-#SBATCH --mem=1900GB 
-#SBATCH --cpus-per-task=100
-#SBATCH --time=48:00:00
+#SBATCH --mem=1000GB 
+#SBATCH --cpus-per-task=50
+#SBATCH --time=24:00:00
 
 module purge
 module load  GDAL/3.7.1-foss-2023a UDUNITS R/4.3.2 PROJ
