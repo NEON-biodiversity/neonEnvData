@@ -28,59 +28,67 @@ library(dplyr)
 # Load Custom Functions and Configuration
 # -----------------------------------------------------------------------------
 # Load custom functions
-source("./R/L1/2-3-functions.R")
-# source("2-3-functions.R") # HPCC
+# source("./R/L1/2-3-functions.R")
+source("2-3-functions.R") # HPCC
 
 # Load configuration file
-source("./R/config.R")
-# source("../config.R") $ HPCC
+# source("./R/config.R")
+source("../config.R") # HPCC
 
 
 # -----------------------------------------------------------------------------
 # Read Command Line Argument (for batch/array job index)
 # -----------------------------------------------------------------------------
-i <- commandArgs(trailingOnly = TRUE)
+# i <- commandArgs(trailingOnly = TRUE)
 # i <- 1
 
 # -----------------------------------------------------------------------------
 # Setup Inputs: Raster Tiles, Domain Polygons, and Metric List
 # -----------------------------------------------------------------------------
 # Example data setup (ensure paths and data files exist as expected)
-srtm_tiles <- st_read(elev_tiles) %>%
-  st_crop(xmin = -180, xmax = -50, ymin = 0, ymax = 90) %>% 
-  st_transform(crs = prj)
-srtm_tile_files <- list.files(elev_tile_tif, full.names = TRUE)
-spatial_poly_paths <- grep(".shp", list.files(output_dir, full.names = TRUE), value = TRUE)
-spatial_poly_names <- grep(".shp", list.files(output_dir), value = TRUE) %>% gsub("\\.shp$", "", .)
-metrics_list <- c("sq", "sbi", "ssk", "sku", "sfd")
+srtm_tiles <- st_read(elev_tiles) # %>%
+  # st_crop(xmin = -180, xmax = -50, ymin = 0, ymax = 90) %>%
+  # st_transform(crs = prj)
+
+srtm_tile_files <- list.files(elev_tile_tif, full.names = TRUE) 
+spatial_poly_paths <- grep(".shp", list.files(output_dir_clim, full.names = TRUE), value = TRUE)
+spatial_poly_names <- grep(".shp", list.files(output_dir_clim), value = TRUE) %>% gsub("\\.shp$", "", .)
+metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "std2", "sds")
 
 
 # -----------------------------------------------------------------------------
 # Run Processing Function
 # -----------------------------------------------------------------------------
-process_polygons(srtm_tiles = srtm_tiles,
+process_polygons_TEMP(srtm_tiles = srtm_tiles,
                  srtm_tile_files = srtm_tile_files,
-                 spatial_poly = st_read(spatial_poly_paths[[3]]),
-                 spatial_poly_name = spatial_poly_names[[3]],
+                 spatial_poly = st_read(spatial_poly_paths[[2]]),
+                 spatial_poly_name = spatial_poly_names[[2]],
                  metrics_list = metrics_list,
                  vrt_dir = elev_vrt,
                  tif_dir = elev_tif,
-                 output_dir = output_dir)
+                 output_dir = output_dir_clim_elev)
 
- 
+###
+# For testing 
+# spatial_poly = st_read(spatial_poly_paths[[5]])
+# spatial_poly_name = spatial_poly_names[[5]]
+# vrt_dir = elev_vrt
+# tif_dir = elev_tif
+# output_dir = output_dir_clim_elev
+###
 
 # Apply the updated function to each file
-# lapply(seq_along(spatial_poly_paths), function(i) {
+# lapply(c(1, 4, 5), function(i) {
 #   spatial_poly <- st_read(spatial_poly_paths[i])
-#   process_polygons(
+#   process_polygons_TEMP(
 #     srtm_tiles = srtm_tiles,
 #     srtm_tile_files = srtm_tile_files,
 #     spatial_poly = spatial_poly,
 #     spatial_poly_name = spatial_poly_names[i],
 #     metrics_list = metrics_list,
-#     vrt_dir = elev_vrt, 
-#     output_dir = output_dir
-#   )
+#     vrt_dir = elev_vrt,
+#     tif_dir = elev_tif,
+#     output_dir = output_dir_clim_elev)
 # })
 
 # -----------------------------------------------------------------------------
