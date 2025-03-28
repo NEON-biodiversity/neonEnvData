@@ -43,7 +43,7 @@ dom <- st_read(paste0(neon_raw, "/NEON_Domains.shp"), quiet=T) %>%
   rename(domainNumb = domainID) %>% 
   mutate(domainNumb = factor(domainNumb)) %>% 
   select(domainName, domainNumb) %>% 
-  st_write(paste0(neon_dir,"/NEON_domains.shp"), append=F)
+  st_write(paste0(neon_dir,"/NEON_domain_footprint.shp"), append=F)
 
 site <- st_read(paste0(neon_raw, "/terrestrialSamplingBoundaries.shp"), quiet=T)  %>% 
   st_transform(prj) %>% 
@@ -54,7 +54,7 @@ site <- st_read(paste0(neon_raw, "/terrestrialSamplingBoundaries.shp"), quiet=T)
     domainNumb = first(domainNumb),
     geometry = st_union(geometry)
   ) %>%
-  st_write(paste0(neon_dir,"/NEON_sites.shp"), append=F)
+  st_write(paste0(neon_dir,"/NEON_site_footprint.shp"), append=F)
 
 
 plt <- st_read(paste0(neon_raw, "/All_NEON_TOS_Plot_Points_V11.shp"), quiet=T)  %>% 
@@ -144,29 +144,29 @@ plt_circle_center <- plt_nested %>%
   dplyr::select(plotID, siteID, domainName, domainNumb, circle_center) %>% 
   rename(geometry = circle_center) %>% 
   st_as_sf() # %>%
-  # st_write(paste0(neon_dir, "/plot_circle_centers.shp"), append=F)
+  # st_write(paste0(neon_dir, "/NEON_plot_circle_centers.shp"), append=F)
 
 plt_radii <- plt_nested %>% 
   dplyr::select(plotID, siteID, domainName, domainNumb, plot_poly) %>% 
   rename(geometry = plot_poly) %>% 
   st_as_sf() %>% 
-  st_write(paste0(neon_dir, "/plot_radii.shp"), append=F)
+  st_write(paste0(neon_dir, "/NEON_plot_radii.shp"), append=F)
 
 site_circle_center <- site_nested %>% 
   dplyr::select(siteID, siteID, domainName, domainNumb, circle_center) %>% 
   rename(geometry = circle_center) %>% 
   st_as_sf() # %>%  
-  # st_write(paste0(neon_dir, "/site_circle_centers.shp"), append=F)
+  # st_write(paste0(neon_dir, "/NEON_site_circle_centers.shp"), append=F)
 
 site_radii <- site_nested %>% 
   dplyr::select(siteID, domainName, domainNumb, site_poly) %>% 
   rename(geometry = site_poly) %>% 
   st_as_sf() %>%  
-  st_write(paste0(neon_dir, "/site_radii.shp"), append=F)
+  st_write(paste0(neon_dir, "/NEON_site_radii.shp"), append=F)
 
 dom_radii <- site_nested %>% 
   dplyr::select(siteID, domainName, domainNumb, circle_center) %>% 
   rename(geometry = circle_center) %>% # 100 km centroid around 
   st_as_sf() %>% 
   st_buffer(dom_buff_dist) %>% 
-  st_write(paste0(neon_dir, "/domain_radii.shp"), append=F)
+  st_write(paste0(neon_dir, "/NEON_domain_radii.shp"), append=F)
