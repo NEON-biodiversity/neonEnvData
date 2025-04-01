@@ -1,6 +1,9 @@
 # Set working directory
 dir <- "/mnt/ufs18/home-109/kapsarke/Documents/neonEnvData/R/L1/"
 
+# Get file paths 
+source("./R/config.R")                # Project configuration (paths, CRS, etc.)
+
 # List all slurm output files
 files <- list.files(pattern = "slurm-.*\\.out$", path = dir, full.names = T)
 
@@ -50,6 +53,16 @@ error_df <- data.frame(
 
 # View it
 print(error_df)
+
+
+# Locate the spatial domain polygon shapefile(s)
+spatial_poly_paths <- grep("domain_footprint.shp", list.files(output_dir_clim, full.names = TRUE), value = TRUE)
+spatial_poly_names <- grep("domain_footprint.shp", list.files(output_dir_clim), value = TRUE) %>% gsub("\\.shp$", "", .)
+
+# Pull geodiv metric and poily combos from script 3 
+metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "std2", "sds")
+spatial_polys <- st_read(spatial_poly_paths)
+combos <- expand.grid(spatial_polys$domainNumb, metrics_list)
 
 bad_jobs <- combos[job_numbers,]
 
