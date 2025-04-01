@@ -50,7 +50,6 @@ srtm_tiles <- st_read(elev_tiles) # %>%
   # st_crop(xmin = -180, xmax = -50, ymin = 0, ymax = 90) %>%
   # st_transform(crs = prj)
 
-srtm_tile_files <- list.files(elev_tile_tif, full.names = TRUE) 
 spatial_poly_paths <- grep(".shp", list.files(output_dir_clim, full.names = TRUE), value = TRUE)
 spatial_poly_names <- grep(".shp", list.files(output_dir_clim), value = TRUE) %>% gsub("\\.shp$", "", .)
 metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "std2", "sds")
@@ -59,14 +58,24 @@ metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "std2", "sds")
 # -----------------------------------------------------------------------------
 # Run Processing Function
 # -----------------------------------------------------------------------------
-process_polygons_TEMP(srtm_tiles = srtm_tiles,
-                 srtm_tile_files = srtm_tile_files,
+# process_polygons(srtm_tiles = srtm_tiles,
+#                  srtm_tile_files = list.files(elev_tile_tif_300m, full.names = TRUE) ,
+#                  spatial_poly = st_read(spatial_poly_paths[[2]]),
+#                  spatial_poly_name = spatial_poly_names[[2]],
+#                  metrics_list = metrics_list,
+#                  vrt_dir = elev_vrt_300m,
+#                  tif_dir = elev_tif_300m,
+#                  output_dir = output_dir_clim_elev_300m)
+
+process_polygons(srtm_tiles = srtm_tiles,
+                 srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
                  spatial_poly = st_read(spatial_poly_paths[[2]]),
                  spatial_poly_name = spatial_poly_names[[2]],
                  metrics_list = metrics_list,
                  vrt_dir = elev_vrt,
                  tif_dir = elev_tif,
                  output_dir = output_dir_clim_elev)
+
 
 ###
 # For testing 
