@@ -116,7 +116,6 @@ calculate_geodiversity_metrics <- function(raster, metrics_list) {
   return(metrics_values)
 }
 
-
 #' Geodiversity Metric Calculation for a Single Spatial Polygon File
 #'
 #' This function processes a single spatial polygon file and calculates geodiversity metrics using SRTM raster data.
@@ -133,95 +132,6 @@ calculate_geodiversity_metrics <- function(raster, metrics_list) {
 #' spatial_poly <- st_read("path/to/polygon_file.shp")
 #' process_polygon(srtm_tiles, srtm_tile_files, spatial_poly, "polygon_file.shp", metrics_list, output_dir)
 process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_poly_name, metrics_list, output_dir, vrt_dir, tif_dir) {
-  
-  # Ensure output directory exists
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
-  
-  print(paste0("Processing polygon set: ", spatial_poly_name))
-  
-  # Placeholder to store metrics for each polygon
-  metrics_values <- list()
-  
-  # Process each polygon
-  for (j in 1:length(spatial_poly$geometry)) {
-    polygon <- spatial_poly[j, ]
-    
-    # Generate name for virtual raster 
-    nm <- ifelse(grepl("plot", spatial_poly_name), paste0("plot_", polygon$plotID), 
-                 ifelse(grepl("site", spatial_poly_name), paste0("site_", polygon$siteID), 
-                        ifelse(grepl("domain", spatial_poly_name), paste0("domain_", polygon$domainNumb), NA)))
-    
-    nm <- ifelse(grepl("radii", spatial_poly_name), paste0(nm, "_radii"), paste0(nm, "_footprint"))
-    
-    print(paste0(nm, ": Processing."))
-    
-    # Intersect SRTM raster with the polygon
-    temp <- srtm_intersection(srtm_tiles, srtm_tile_files, polygon, ID=nm, vrt_path=vrt_dir, tif_path=tif_dir)
-    
-    print(paste0(nm, ": Raster intersection complete."))
-    
-    # Calculate geodiversity metrics for the intersected raster
-    output <- calculate_geodiversity_metrics(temp, 
-                                             ifelse(class(metrics_list) == "factor", as.character(metrics_list), metrics_list))
-    
-    if(class(temp) == "SpatRaster"){
-      output[["mean"]] <- global(temp, "mean", na.rm=T)[,1]
-      output[["sd"]] <- global(temp, "sd", na.rm=T)[,1]
-    }else{
-      output[["mean"]] <- NA
-      output[["sd"]] <- NA
-    }
-    
-    # Reorder so mean and sd are first 
-    output <- output[c("mean", "sd", setdiff(names(output), c("mean", "sd")))]
-    
-    metrics_values[[j]] <- output
-    
-    # write.csv(output, paste0("/mnt/scratch/kapsarke/geodiversity/output/geodiv_metric_csv_domains/geodiv_metrics_", polygon$domainNumb, ".csv"))
-    # write.csv(output, paste0("/mnt/home/kapsarke/Documents/geodiversity/geodiv_metrics_", polygon$domainNumb, ".csv"))
-    
-    print(paste0(nm, ": Metrics calculated."))
-  }
-  
-  # Combine metrics into a data frame
-  metrics_df <- as.data.frame(do.call(rbind, metrics_values))
-  
-  # Add metrics to the polygon data
-  out_polys <- cbind(spatial_poly, metrics_df)
-  
-  # Generate the output file path
-  if(length(metrics_list) == 1){
-    output_path <- file.path(output_dir, paste0(spatial_poly_name,"_", metrics_list, "_elev.shp"))
-  }else(
-    output_path <- file.path(output_dir, paste0(spatial_poly_name, "_elev.shp"))
-  )
-  # Save the updated polygons with metrics
-  st_write(out_polys, output_path, append=FALSE)
-  print(paste0("Saved processed polygons to ", output_path))
-}
-
-
-
-
-
-#' Geodiversity Metric Calculation for a Single Spatial Polygon File
-#'
-#' This function processes a single spatial polygon file and calculates geodiversity metrics using SRTM raster data.
-#' 
-#' @param srtm_tiles An `sf` object representing the SRTM tile grid.
-#' @param srtm_tile_files A character vector of file paths to SRTM raster files.
-#' @param spatial_poly An `sf` polygon object to be processed.
-#' @param spatial_poly_name A character string representing the name of the polygon file.
-#' @param metrics_list A character vector of geodiversity metrics to calculate.
-#' @param output_dir The directory where intersected rasters and updated polygons are saved.
-#' @return None. Saves the updated polygon with geodiversity metrics to the specified directory.
-#' @examples
-#' metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "sds", "std2")
-#' spatial_poly <- st_read("path/to/polygon_file.shp")
-#' process_polygon(srtm_tiles, srtm_tile_files, spatial_poly, "polygon_file.shp", metrics_list, output_dir)
-process_polygons_TEMP <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_poly_name, metrics_list, output_dir, vrt_dir, tif_dir) {
   
   # Ensure output directory exists
   if (!dir.exists(output_dir)) {
