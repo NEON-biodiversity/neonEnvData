@@ -58,23 +58,23 @@ metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "std2", "sds")
 # -----------------------------------------------------------------------------
 # Run Processing Function
 # -----------------------------------------------------------------------------
+process_polygons(srtm_tiles = srtm_tiles,
+                 srtm_tile_files = list.files(elev_tile_tif_300m, full.names = TRUE) ,
+                 spatial_poly = st_read(spatial_poly_paths[[1]]),
+                 spatial_poly_name = spatial_poly_names[[1]],
+                 metrics_list = metrics_list,
+                 vrt_dir = elev_vrt_300m,
+                 tif_dir = elev_tif_300m,
+                 output_dir = output_dir_clim_elev_300m)
+# 
 # process_polygons(srtm_tiles = srtm_tiles,
-#                  srtm_tile_files = list.files(elev_tile_tif_300m, full.names = TRUE) ,
+#                  srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
 #                  spatial_poly = st_read(spatial_poly_paths[[2]]),
 #                  spatial_poly_name = spatial_poly_names[[2]],
 #                  metrics_list = metrics_list,
-#                  vrt_dir = elev_vrt_300m,
-#                  tif_dir = elev_tif_300m,
-#                  output_dir = output_dir_clim_elev_300m)
-
-process_polygons(srtm_tiles = srtm_tiles,
-                 srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
-                 spatial_poly = st_read(spatial_poly_paths[[2]]),
-                 spatial_poly_name = spatial_poly_names[[2]],
-                 metrics_list = metrics_list,
-                 vrt_dir = elev_vrt,
-                 tif_dir = elev_tif,
-                 output_dir = output_dir_clim_elev)
+#                  vrt_dir = elev_vrt,
+#                  tif_dir = elev_tif,
+#                  output_dir = output_dir_clim_elev)
 
 
 ###
