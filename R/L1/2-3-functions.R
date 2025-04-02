@@ -197,9 +197,9 @@ process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_
   
   # Generate the output file path
   if(length(metrics_list) == 1){
-    output_path <- file.path(output_dir_clim_elev, paste0(spatial_poly_name,"_", metrics_list, ".shp"))
+    output_path <- file.path(output_dir, paste0(spatial_poly_name,"_", metrics_list, ".shp"))
   }else(
-    output_path <- file.path(output_dir_clim_elev, paste0(spatial_poly_name, ".shp"))
+    output_path <- file.path(output_dir, paste0(spatial_poly_name, ".shp"))
   )
   # Save the updated polygons with metrics
   st_write(out_polys, output_path, append=FALSE)
