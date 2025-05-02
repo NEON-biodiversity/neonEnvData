@@ -54,12 +54,6 @@ data/
 # Figures folder
 figures/
 
-# Database file 
-*.duckdb
-
-# API token file 
-R/config.R
-
 # SLURM output files 
 *.out
 

@@ -1,0 +1,113 @@
+# TITLE:            Configuration Setup
+# PROJECT:          NEON Environmental Data 
+# AUTHORS:          Kelly Kapsar, Pat Bills, Phoebe Zarnetske 
+# COLLABORATORS:    Lala Kounta
+# DATA INPUT:       NA
+# DATA OUTPUT:      File structure for neonEnvData project
+# DATE:             January 2025
+# OVERVIEW:         Script for generating file structure for project data and 
+#                   specifying parameters (e.g. projection, radii distances). 
+
+
+## Spatial Projection 
+prj <- "EPSG:5070" # For input to projection functions
+prj_name <- "EPSG5070" # For naming folders and files
+
+## Buffer distance for radii (in m)
+dom_buff_dist = 100000
+site_buff_dist = 15000
+plt_buff_dist = 100
+
+# Resolution for srtm data (if coarsened). Starting resolution = 30m 
+elev_res <- "600"
+
+## Project Directory 
+proj_dir <- "/mnt/scratch/kapsarke/neonEnvData/"  # Change to relative path
+
+## Elevation
+# L0
+raw_elev_dir <- paste0(proj_dir, "L0/elev_srtm_gl1_v003/raw") # srtm raw data here
+elev_hgt <- paste0(proj_dir, "L0/elev_srtm_gl1_v003/unzipped_hgt")
+elev_tiles <- paste0(proj_dir, "L0/elev_srtm_gl1_v003/tiles/srtm_grid_1deg_epsg5070.shp")
+
+
+# L1
+elev_tile_tif <- paste0(proj_dir, "L1/elev_EPSG5070")
+# elev_tile_tif_300m <- paste0(proj_dir, "L1/elev_EPSG5070_300m")
+elev_tif <- paste0(proj_dir, "L1/elev_tif")
+# elev_tif_300m <- paste0(proj_dir, "L1/elev_tif_300m")
+elev_vrt <- paste0(proj_dir, "L1/elev_vrt")
+# elev_vrt_300m <- paste0(proj_dir, "L1/elev_vrt_300m")
+
+## Climate
+# L0
+raw_clim_dir <- paste0(proj_dir, "L0/climate_chelsa_1981-2009")
+# L1
+clim_tif <- paste0(proj_dir, "L1/climate_", prj_name)
+
+## NEON
+# L0
+neon_raw <- paste0(proj_dir, "L0/neon_spatial")
+# L1
+neon_dir <- paste0(proj_dir, "L1/neon_", prj_name)
+
+## Output Directories
+output_dir <- paste0(proj_dir, "L2")
+output_dir_clim <- paste0(proj_dir, "L2/clim_only")
+output_dir_clim_elev <- paste0(proj_dir, "L2/clim_elev")
+# output_dir_clim_elev_300m <- paste0(proj_dir, "L2/clim_elev_300m")
+output_dir_domain_footprint <- paste0(proj_dir, "L2/domain_footprint")
+figures <- paste0(proj_dir, "L2/figures")
+
+# Add in changes to resolution of srtm if needed 
+if(!is.na(elev_res)){
+  elev_tif <- paste0(elev_tif, "_", elev_res, "m")
+  elev_tile_tif <- paste0(elev_tile_tif, "_", elev_res, "m")
+  elev_vrt <- paste0(elev_vrt, "_", elev_res, "m")
+  output_dir_clim_elev <- paste0(output_dir_clim_elev, "_", elev_res, "m")
+}
+
+
+setup_project_directories <- function(proj_dir_name) {
+  # Construct the full path for the project directory
+  proj_dir <- file.path(proj_dir_name)
+  
+  # Create the project directory if it doesn't exist
+  if (!dir.exists(proj_dir)) {
+    dir.create(proj_dir, recursive = TRUE)
+    message(paste("Created project directory:", proj_dir))
+  } else {
+    message(paste("Project directory already exists:", proj_dir))
+  }
+  
+  # Define the full paths of required subfolders within the project directory
+  required_dirs <- c(
+    raw_elev_dir,
+    elev_hgt,
+    elev_vrt,
+    elev_tif,
+    raw_clim_dir,
+    clim_tif,
+    neon_raw,
+    neon_dir,
+    output_dir, 
+    output_dir_domain_footprint,
+    output_dir_clim, 
+    output_dir_clim_elev,
+    figures
+  )
+  
+  # Loop through each directory and create it if it does not exist
+  for (dir in required_dirs) {
+    if (!dir.exists(dir)) {
+      dir.create(dir, recursive = TRUE)
+      message(paste("Created directory:", dir))
+    } else {
+      message(paste("Directory already exists:", dir))
+    }
+  }
+  
+  message("All directories are set up!")
+}
+
+setup_project_directories(proj_dir_name = proj_dir)
