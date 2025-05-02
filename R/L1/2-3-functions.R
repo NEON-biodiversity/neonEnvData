@@ -131,7 +131,7 @@ calculate_geodiversity_metrics <- function(raster, metrics_list) {
 #' metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "sds", "std2")
 #' spatial_poly <- st_read("path/to/polygon_file.shp")
 #' process_polygon(srtm_tiles, srtm_tile_files, spatial_poly, "polygon_file.shp", metrics_list, output_dir)
-process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_poly_name, metrics_list, output_dir, vrt_dir, tif_dir) {
+process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_poly_name, id_col, metrics_list, output_dir, vrt_dir, tif_dir) {
   
   # Ensure output directory exists
   if (!dir.exists(output_dir)) {
@@ -148,11 +148,8 @@ process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_
     polygon <- spatial_poly[j, ]
     
     # Generate name for virtual raster 
-    nm <- ifelse(grepl("plot", spatial_poly_name), paste0(spatial_poly_name, "_", polygon$plotID), 
-          ifelse(grepl("site", spatial_poly_name), paste0(spatial_poly_name, "_", polygon$siteID), 
-          ifelse(grepl("domain_radii", spatial_poly_name), paste0(spatial_poly_name, "_",polygon$siteID), 
-          ifelse(grepl("domain_footprint", spatial_poly_name), paste0(spatial_poly_name, "_", polygon$domainNumb), NA))))
-
+    nm <- paste0(spatial_poly_name, "_", polygon[[id_col]])
+    
     print(paste0(nm, ": Processing."))
     
     # Intersect SRTM raster with the polygon

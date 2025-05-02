@@ -28,12 +28,12 @@ library(dplyr)
 # Load Custom Functions and Configuration
 # -----------------------------------------------------------------------------
 # Load custom functions
-# source("./R/L1/2-3-functions.R")
-source("2-3-functions.R") # HPCC
+source("./R/L1/2-3-functions.R")
+# source("2-3-functions.R") # HPCC
 
 # Load configuration file
-# source("./R/config.R")
-source("../config.R") # HPCC
+source("./R/config.R")
+# source("../config.R") # HPCC
 
 
 # -----------------------------------------------------------------------------
@@ -59,13 +59,17 @@ metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "std2", "sds")
 # Run Processing Function
 # -----------------------------------------------------------------------------
 process_polygons(srtm_tiles = srtm_tiles,
-                 srtm_tile_files = list.files(elev_tile_tif_300m, full.names = TRUE) ,
-                 spatial_poly = st_read(spatial_poly_paths[[1]]),
-                 spatial_poly_name = spatial_poly_names[[1]],
+                 srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
+                 spatial_poly = st_read(spatial_poly_paths[[3]]),
+                 spatial_poly_name = spatial_poly_names[[3]],
+                 id_col = ifelse(grepl("plot", spatial_poly_name), "plotID", 
+                          ifelse(grepl("site", spatial_poly_name), "siteID", 
+                          ifelse(grepl("domain_radii", spatial_poly_name), "siteID", 
+                          ifelse(grepl("domain_footprint", spatial_poly_name), "domainNumb", NA)))),
                  metrics_list = metrics_list,
-                 vrt_dir = elev_vrt_300m,
-                 tif_dir = elev_tif_300m,
-                 output_dir = output_dir_clim_elev_300m)
+                 vrt_dir = elev_vrt,
+                 tif_dir = elev_tif,
+                 output_dir = "/mnt/scratch/kapsarke/neonEnvData/L1/test")
 # 
 # process_polygons(srtm_tiles = srtm_tiles,
 #                  srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
