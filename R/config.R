@@ -9,11 +9,14 @@
 #                   specifying parameters (e.g. projection, radii distances). 
 
 
+################################################################################
+#### USER SPECIFIED INPUTS ####
+
 ## Spatial Projection 
 prj <- "EPSG:5070" # For input to projection functions
 prj_name <- "EPSG5070" # For naming folders and files
 
-## Buffer distance for radii (in m)
+## Buffer distance for radii around domain, site, and plot (in m)
 dom_buff_dist = 100000
 site_buff_dist = 15000
 plt_buff_dist = 100
@@ -23,6 +26,9 @@ elev_res <- "600"
 
 ## Project Directory 
 proj_dir <- "/mnt/scratch/kapsarke/neonEnvData/"  # Change to relative path
+
+################################################################################
+#### AUTO-GENERATED FILE STRUCTURE ####
 
 ## Elevation
 # L0

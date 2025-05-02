@@ -62,7 +62,7 @@ cropped_projected <- foreach(i = 1:length(all_tiles$id), .packages = c("terra", 
     grep("\\.zip$", ., value = TRUE)
   
   # Specify the target resolution (e.g., 30 meters)
-  target_resolution <- 30  # Adjust as needed
+  target_resolution <- as.numeric(elev_res)  # Adjust as needed
   
   # Unzip and load the raster tile
   raster_tile <- unzip(
@@ -80,7 +80,7 @@ cropped_projected <- foreach(i = 1:length(all_tiles$id), .packages = c("terra", 
   terra::writeRaster(
     reprojected_tile,
     paste0(
-      elev_tif,
+      elev_tile_tif,
       "/",
       all_tiles$id[i], "_", prj_name, ".tif"
     ), overwrite=T
