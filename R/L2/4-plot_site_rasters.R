@@ -20,18 +20,18 @@ library(ggplot2)   # For plotting
 source("./R/config.R")
 
 # Load spatial data (e.g., NEON sites and radii polygons)
-site <- st_read(
-  "/mnt/scratch/plz-lab/geodiversity/spatial_data/polys_EPSG5070/NEON_sites.shp",
+site <- st_read(paste0(neon_dir,
+  "/NEON_site_footprint.shp"),
   quiet = TRUE
 )
 
-site_radii <- st_read(
-  "/mnt/scratch/plz-lab/geodiversity/spatial_data/polys_EPSG5070/site_radii.shp",
+site_radii <- st_read(paste0(neon_dir,
+  "/NEON_site_radii.shp"),
   quiet = TRUE
 )
 
-domain_radii <- st_read(
-  "/mnt/scratch/plz-lab/geodiversity/spatial_data/polys_EPSG5070/domain_radii.shp",
+domain_radii <- st_read(paste0(neon_dir,
+  "/NEON_domain_radii.shp"),
   quiet = TRUE
 )
 
@@ -56,65 +56,49 @@ plot_site_elevations <- function(srtm_tiles, srtm_tile_files, site_radii, site) 
     cutter <- site_radii[i, ]
     site_code <- site_radii$siteID[i]
     radii_data <- site_radii[site_radii$siteID == site_code, ]
+    site_footprint <- site[site$siteID == site_code,]
     
     # Print progress message
     print(paste0("Processing polygon ", i, " of ", nrow(site_radii), "."))
     
-    # Identify SRTM tiles intersecting with the current polygon
-    intersecting_tiles <- srtm_tiles[st_intersects(cutter, srtm_tiles, sparse = FALSE), ]
+    r <- paste0(elev_vrt, "/NEON_site_radii_", site_code, ".vrt")
     
-    # Skip to the next polygon if no intersecting tiles are found
-    if (length(intersecting_tiles$id) == 0) {
-      next
-    }
-    
-    # Get the list of raster files corresponding to the intersecting tiles
-    tiles <- srtm_tile_files %>%
-      grep(paste(unique(intersecting_tiles$id), collapse = "|"), ., value = TRUE)
-    
-    # Load and mosaic the intersecting tiles
-    temp <- lapply(tiles, rast)
-    
-    # Mosaic and process the raster data
-    if (length(temp) > 1) {
-      ras1 <- do.call(terra::mosaic, temp) %>%
-        terra::crop(., st_bbox(cutter)) %>%  # Crop to the bounding box of the polygon
-        terra::mask(cutter)  # Mask to the shape of the polygon
-    } else {
-      ras1 <- temp[[1]] %>%
-        terra::crop(., st_bbox(cutter)) %>%
-        terra::mask(cutter)
-    }
-    
-    # Convert the processed raster to a data frame for plotting
-    ras1_df <- as.data.frame(ras1, xy = TRUE, na.rm = TRUE)
-    colnames(ras1_df) <- c("x", "y", "value")  # Ensure proper column names
-    
-    # Create a plot using ggplot
-    fig_site_radii <- ggplot() +
-      geom_raster(data = ras1_df, aes(x = x, y = y, fill = value)) +
-      scale_fill_viridis_c(option = "viridis") +  # Use the viridis color scale
-      theme_minimal() +  # Minimalistic plot theme
-      theme(
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank(),
-        axis.title = element_blank(),
-        plot.title = element_blank(),
-        legend.position = "none"
+    if(file.exists(r)){               
+      t <- terra::vrt(r) %>% 
+        terra::mask(radii_data) %>% 
+        terra::crop(radii_data)
+      
+      # Convert the processed raster to a data frame for plotting
+      ras1_df <- as.data.frame(t, xy = TRUE, na.rm = TRUE)
+      colnames(ras1_df) <- c("x", "y", "value")  # Ensure proper column names
+      
+      # Create a plot using ggplot
+      fig_site_radii <- ggplot() +
+        geom_raster(data = ras1_df, aes(x = x, y = y, fill = value)) +
+        scale_fill_viridis_c(option = "viridis") +  # Use the viridis color scale
+        geom_sf(data = site_footprint, color = "white", fill = NA, size = 0.5) +  # Added white outline
+        theme_minimal() +  # Minimalistic plot theme
+        theme(
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          axis.title = element_blank(),
+          plot.title = element_blank(),
+          legend.position = "none"
+        )
+      
+      # Save the plot to a file
+      ggsave(
+        paste0(
+          figures, "/",
+          site_code, "_plain.png"
+        ), 
+        fig_site_radii, 
+        width = 4, height = 4, units = "in", dpi = 300
       )
-    
-    # Save the plot to a file
-    ggsave(
-      paste0(
-        "/mnt/scratch/plz-lab/geodiversity/output/figures/", 
-        site_code, "_plain.png"
-      ), 
-      fig_site_radii, 
-      width = 4, height = 4, units = "in", dpi = 300
-    )
-  }
+  }else(next)
+    }
 }
 
 # Call the function to generate plots
