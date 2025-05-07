@@ -37,36 +37,52 @@ intersect_raster_with_polygon <- function(pol, raster, save_path = NULL) {
 #' @param srtm_tile_files A character vector of file paths to SRTM raster files.
 #' @param polygon An `sf` polygon object.
 #' @param save_path Optional file path to save the intersected raster.
+#' @param elev_res Character string specifying resolution for raster output
 #' @param ID identifying name for virtual raster 
 #' @return A `SpatRaster` object of the intersected and mosaicked raster.
 #' @examples
 #' intersected <- srtm_intersection(srtm_tiles, srtm_tile_files, my_polygon)
 #' intersected <- srtm_intersection(srtm_tiles, srtm_tile_files, my_polygon, "output.tif")
-srtm_intersection <- function(srtm_tiles, srtm_tile_files, polygon, tif_path, vrt_path, ID = NULL) {
-    # Find intersecting tiles
-    intersecting_tiles <- srtm_tiles[st_intersects(polygon, srtm_tiles, sparse = FALSE), ]
-    
-    # Return NA if no intersecting tiles are found
-    if (length(intersecting_tiles$id) == 0) {
-      return(NA)
-    }
-    
-    # Filter tile files that match intersecting tiles
-    tiles <- srtm_tile_files %>%
-      grep(paste(unique(intersecting_tiles$id), collapse = "|"), ., value = TRUE)
-    
-    output_vrt <- paste0(vrt_path, "/", ID, ".vrt")
+srtm_intersection <- function(srtm_tiles, srtm_tile_files, polygon, tif_path, vrt_path, elev_res, ID = NULL) {
+  # Find intersecting tiles
+  intersecting_tiles <- srtm_tiles[st_intersects(polygon, srtm_tiles, sparse = FALSE), ]
+  
+  # Return NA if no intersecting tiles are found
+  if (length(intersecting_tiles$id) == 0) {
+    return(NA)
+  }
+  
+  # Filter tile files that match intersecting tiles
+  tiles <- srtm_tile_files %>%
+    grep(paste(unique(intersecting_tiles$id), collapse = "|"), ., value = TRUE)
+  
+  output_vrt <- paste0(vrt_path, "/", ID, ".vrt")
 
-    # Create the virtual raster
-    if(!file.exists(output_vrt)){
-      vr <- vrt(tiles, filename = output_vrt, overwrite=T)
-    }else(
-      vr <- vrt(output_vrt)
-    )
-    # Intersect rasters
-    output_ras <- paste0(tif_path, "/", ID, ".tif" )
+  # Create the virtual raster
+  if(!file.exists(output_vrt)){
+    # Step 1: Create the VRT (high-res, lightweight pointer)
+    gdalbuildvrt(gdalfile = tiles, output.vrt = output_vrt)
     
-    raster_intersected <- intersect_raster_with_polygon(polygon, vr, save_path = output_ras)
+  }
+  # Step 2: Warp it to a new VRT at lower resolution
+  output_vrt_agg <- file.path(vrt_path, paste0(ID, "_", elev_res, ".vrt"))
+  
+  # Create the virtual raster
+  if(!file.exists(output_vrt_agg)){
+    gdalwarp(srcfile = output_vrt,
+             dstfile = output_vrt_agg,
+             tr = c(as.numeric(elev_res), as.numeric(elev_res)),# target resolution in meters
+             of = "VRT",                # output format
+             overwrite = TRUE,
+             r = "average")             # resampling method
+  }
+  
+  vr <- terra::vrt(output_vrt_agg)
+
+  # Intersect rasters
+  output_ras <- paste0(tif_path, "/", ID, "_", elev_res, ".tif" )
+  
+  raster_intersected <- intersect_raster_with_polygon(polygon, vr, save_path = output_ras)
 
   # Return the resulting raster
   return(raster_intersected)
@@ -131,7 +147,7 @@ calculate_geodiversity_metrics <- function(raster, metrics_list) {
 #' metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "sds", "std2")
 #' spatial_poly <- st_read("path/to/polygon_file.shp")
 #' process_polygon(srtm_tiles, srtm_tile_files, spatial_poly, "polygon_file.shp", metrics_list, output_dir)
-process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_poly_name, id_col, metrics_list, output_dir, vrt_dir, tif_dir) {
+process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_poly_name, id_col, metrics_list, output_dir, vrt_dir, tif_dir, elev_res) {
   
   # Ensure output directory exists
   if (!dir.exists(output_dir)) {
@@ -153,7 +169,7 @@ process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_
     print(paste0(nm, ": Processing."))
     
     # Intersect SRTM raster with the polygon
-    temp <- srtm_intersection(srtm_tiles, srtm_tile_files, polygon, ID=nm, vrt_path=vrt_dir, tif_path=tif_dir)
+    temp <- srtm_intersection(srtm_tiles, srtm_tile_files, polygon, ID=nm, vrt_path=vrt_dir, tif_path=tif_dir, elev_res=elev_res)
     
     print(paste0(nm, ": Raster intersection complete."))
     
@@ -167,14 +183,14 @@ process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_
     
     if(class(temp) == "SpatRaster"){
       output[["mean"]] <- global(temp, "mean", na.rm=T)[,1]
-      output[["sd"]] <- global(temp, "sd", na.rm=T)[,1]
+      # output[["sd"]] <- global(temp, "sd", na.rm=T)[,1]
     }else{
       output[["mean"]] <- NA
-      output[["sd"]] <- NA
+      # output[["sd"]] <- NA
     }
     
     # Reorder so mean and sd are first 
-    output <- output[c("mean", "sd", setdiff(names(output), c("mean", "sd")))]
+    output <- output[c("mean", setdiff(names(output), c("mean")))]
     
     names(output) <- paste0("srtm_", names(output))
     

@@ -62,7 +62,7 @@ cropped_projected <- foreach(i = 1:length(all_tiles$id), .packages = c("terra", 
     grep("\\.zip$", ., value = TRUE)
   
   # Specify the target resolution (e.g., 30 meters)
-  target_resolution <- as.numeric(elev_res)  # Adjust as needed
+  target_resolution <- 30 
   
   # Unzip and load the raster tile
   raster_tile <- unzip(
