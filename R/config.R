@@ -22,7 +22,7 @@ site_buff_dist = 15000
 plt_buff_dist = 100
 
 # Resolution for srtm data (if coarsened). Starting resolution = 30m 
-elev_res <- "600"
+elev_res <- "300"
 
 ## Project Directory 
 proj_dir <- "/mnt/scratch/kapsarke/neonEnvData/"  # Change to relative path
@@ -68,7 +68,6 @@ figures <- paste0(proj_dir, "L2/figures")
 # Add in changes to resolution of srtm if needed 
 if(!is.na(elev_res)){
   elev_tif <- paste0(elev_tif, "_", elev_res, "m")
-  elev_tile_tif <- paste0(elev_tile_tif, "_", elev_res, "m")
   elev_vrt <- paste0(elev_vrt, "_", elev_res, "m")
   output_dir_clim_elev <- paste0(output_dir_clim_elev, "_", elev_res, "m")
 }
