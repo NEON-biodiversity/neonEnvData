@@ -83,20 +83,6 @@ print(head(combos))
 # -----------------------------------------------------------------------------
 # Run Processing Function
 # -----------------------------------------------------------------------------
-# ras <- terra::vrt(ras_paths[1])
-ras <- terra::rast("/mnt/scratch/kapsarke/neonEnvData/L1/elev_vrt/NEON_site_radii_ABBY.vrt")
-
-# mask 
-m <- st_read(spatial_poly_paths) %>% filter(siteID == "ABBY") %>% vect()
-
-ras_mask <- ras %>% terra::crop(m) %>%  terra::mask(m)
-
-# test <- focal_metrics(ras, window = matrix(1,101,101), metrics = list("sa"), progress=T)
-test <- texture_image(ras_mask, window_type = "circle", size = 5, in_meters=F, metric = "sds", parallel=T, ncores = 5, nclumps=100)
-
-
-terra::writeRaster(test, "test_output.tif")
-
 process_polygons(
   srtm_tiles = srtm_tiles,
   srtm_tile_files = srtm_tile_files,
