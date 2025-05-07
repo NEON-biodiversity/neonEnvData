@@ -11,7 +11,7 @@
 
 library(geodiv)
 library(raster)
-library(rastervis)
+# library(rastervis)
 library(mapdata)
 library(maptools)
 library(rgeos)
@@ -57,27 +57,46 @@ statePoly <- states[states$NAME == "Oregon", ] %>% st_transform(., st_crs(evi))
 # Mask 
 evi_masked <- mask(x = evi, mask = statePoly)
 
-rasterVis::levelplot(evi_masked, margin = F, par.settings = eviTheme, 
+rasterVis::levelplot(evi_masked, margin = F, 
                      ylab = NULL, xlab = NULL, 
                      main = 'Maximum Growing Season EVI')
 
 evi_masked <- remove_plane(evi_masked)
 
-rasterVis::levelplot(evi_masked, margin = F, par.settings = eviTheme, 
+rasterVis::levelplot(evi_masked, margin = F, 
                      ylab = NULL, xlab = NULL, 
                      main = 'EVI without Trend')
 
 system.time(outrast <- texture_image(evi_masked, window_type = 'square', 
-                                     size = 5, in_meters = FALSE, metric = 'sa', 
+                                     size = 5, in_meters = FALSE, metric = 'sdq', 
                                      parallel = FALSE, nclumps = 100))
 
+rasterVis::levelplot(outrast, margin = F, 
+                     ylab = NULL, xlab = NULL, 
+                     main = 'Sa')
 # 200 GB RAM took 64 seconds on 440640 pixels 
 
-data_evi <- data.frame(x = terra::crds(outrast)[,1], 
-                       y = terra::crds(outrast)[,2])
+m_list <- list("sq", "sdq", "sbi", "ssk", "sku", "sfd", "sds")
+m_list <- list("sq", "sdq", "sbi", "ssk", "sku", "sfd")
 
-data_evi[,3] <- outrast[]
+outrasts <- list()
 
+system.time(for( i in 1:length(m_list)) {
+  outrasts[[i]] <- texture_image(evi_masked, 
+                                 window_type = 'square', 
+                                 size = 15, 
+                                 in_meters = F, 
+                                 metric = m_list[[i]], 
+                                 parallel = T, 
+                                 nclumps = 100)
+})
 
+outrasts <- rast(outrasts)
 
+data_evi <- data.frame(x = crds(outrasts)[,1],
+                       y = crds(outrasts)[,2])
+
+for(i in 1:length(m_list)){
+  data_evi[, i +2] <- outrasts[[i]][]
+}
 
