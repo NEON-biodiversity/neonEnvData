@@ -15,10 +15,16 @@
 # -----------------------------------------------------------------------------
 # Load Required Libraries
 # -----------------------------------------------------------------------------
+list.of.packages <- c("geodiv", "terra", "sf", "dplyr", "gdalUtils")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages)
+
+
 library(geodiv)
 library(terra)
 library(sf)
 library(dplyr)
+library(gdalUtils)
 # library(foreach)
 # library(doParallel)
 # library(ggplot2)
@@ -28,12 +34,12 @@ library(dplyr)
 # Load Custom Functions and Configuration
 # -----------------------------------------------------------------------------
 # Load custom functions
-source("./R/L1/2-3-functions.R")
-# source("2-3-functions.R") # HPCC
+# source("./R/L1/2-3-functions.R")
+source("2-3-functions.R") # HPCC
 
 # Load configuration file
-source("./R/config.R")
-# source("../config.R") # HPCC
+# source("./R/config.R")
+source("../config.R") # HPCC
 
 
 # -----------------------------------------------------------------------------
@@ -52,57 +58,57 @@ srtm_tiles <- st_read(elev_tiles) # %>%
 
 spatial_poly_paths <- grep(".shp", list.files(output_dir_clim, full.names = TRUE), value = TRUE)
 spatial_poly_names <- grep(".shp", list.files(output_dir_clim), value = TRUE) %>% gsub("\\.shp$", "", .)
-metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "std2", "sds")
+metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "std2", "sds")
 
 
 # -----------------------------------------------------------------------------
 # Run Processing Function
 # -----------------------------------------------------------------------------
-process_polygons(srtm_tiles = srtm_tiles,
-                 srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
-                 spatial_poly = st_read(spatial_poly_paths[[3]]),
-                 spatial_poly_name = spatial_poly_names[[3]],
-                 id_col = ifelse(grepl("plot", spatial_poly_name), "plotID", 
-                          ifelse(grepl("site", spatial_poly_name), "siteID", 
-                          ifelse(grepl("domain_radii", spatial_poly_name), "siteID", 
-                          ifelse(grepl("domain_footprint", spatial_poly_name), "domainNumb", NA)))),
-                 metrics_list = metrics_list,
-                 vrt_dir = elev_vrt,
-                 tif_dir = elev_tif,
-                 output_dir = "/mnt/scratch/kapsarke/neonEnvData/L1/test")
-# 
 # process_polygons(srtm_tiles = srtm_tiles,
 #                  srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
-#                  spatial_poly = st_read(spatial_poly_paths[[2]]),
-#                  spatial_poly_name = spatial_poly_names[[2]],
+#                  spatial_poly = st_read(spatial_poly_paths[[4]]),
+#                  spatial_poly_name = spatial_poly_names[[4]],
+#                  id_col = ifelse(grepl("plot", spatial_poly_names[[4]]), "plotID", 
+#                           ifelse(grepl("site", spatial_poly_names[[4]]), "siteID", 
+#                           ifelse(grepl("domain_radii", spatial_poly_names[[4]]), "siteID", 
+#                           ifelse(grepl("domain_footprint", spatial_poly_names[[4]]), "domainNumb", NA)))),
 #                  metrics_list = metrics_list,
 #                  vrt_dir = elev_vrt,
 #                  tif_dir = elev_tif,
-#                  output_dir = output_dir_clim_elev)
+#                  output_dir = output_dir_clim_elev, 
+#                  elev_res = elev_res)
 
 
 ###
 # For testing 
-# spatial_poly = st_read(spatial_poly_paths[[5]])
-# spatial_poly_name = spatial_poly_names[[5]]
+# srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE)
+# spatial_poly = st_read(spatial_poly_paths[[4]])
+# spatial_poly_name = spatial_poly_names[[4]]
+# id_col = ifelse(grepl("plot", spatial_poly_name), "plotID",
+#                 ifelse(grepl("site", spatial_poly_name), "siteID",
+#                        ifelse(grepl("domain_radii", spatial_poly_name), "siteID",
+#                               ifelse(grepl("domain_footprint", spatial_poly_name), "domainNumb", NA))))
 # vrt_dir = elev_vrt
 # tif_dir = elev_tif
 # output_dir = output_dir_clim_elev
 ###
 
 # Apply the updated function to each file
-# lapply(c(1, 4, 5), function(i) {
-#   spatial_poly <- st_read(spatial_poly_paths[i])
-#   process_polygons_TEMP(
-#     srtm_tiles = srtm_tiles,
-#     srtm_tile_files = srtm_tile_files,
-#     spatial_poly = spatial_poly,
-#     spatial_poly_name = spatial_poly_names[i],
-#     metrics_list = metrics_list,
-#     vrt_dir = elev_vrt,
-#     tif_dir = elev_tif,
-#     output_dir = output_dir_clim_elev)
-# })
+lapply(2:5, function(i) {
+  process_polygons(srtm_tiles = srtm_tiles,
+                   srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
+                   spatial_poly = st_read(spatial_poly_paths[[i]]),
+                   spatial_poly_name = spatial_poly_names[[i]],
+                   id_col = ifelse(grepl("plot", spatial_poly_names[[i]]), "plotID", 
+                            ifelse(grepl("site", spatial_poly_names[[i]]), "siteID", 
+                            ifelse(grepl("domain_radii", spatial_poly_names[[i]]), "siteID", 
+                            ifelse(grepl("domain_footprint", spatial_poly_names[[i]]), "domainNumb", NA)))),
+                   metrics_list = metrics_list,
+                   vrt_dir = elev_vrt,
+                   tif_dir = elev_tif,
+                   output_dir = output_dir_clim_elev, 
+                   elev_res = elev_res)
+})
 
 # -----------------------------------------------------------------------------
 # Time Trials
