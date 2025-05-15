@@ -18,15 +18,6 @@ library(foreach)   # For parallel iteration
 # source("./R/config.R")
 source("../config.R")
 
-# Define the bounding box for cropping
-xmin <- -180  # Minimum longitude
-ymin <- 14    # Minimum latitude
-xmax <- -60   # Maximum longitude
-ymax <- 90    # Maximum latitude
-
-# Define the extent for cropping
-extent <- ext(xmin, xmax, ymin, ymax)
-
 # List climate data files and their names
 clim_data <- list.files(
   raw_clim_dir,

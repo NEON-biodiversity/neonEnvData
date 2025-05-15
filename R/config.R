@@ -27,6 +27,17 @@ elev_res <- "300"
 ## Project Directory 
 proj_dir <- "/mnt/scratch/kapsarke/neonEnvData/"  # Change to relative path
 
+# Specify geographic extent of the analysis 
+# (so that not all data are loaded in -- saves memory)
+# xmin = Minimum longitude
+# ymin = Minimum latitude
+# xmax = Maximum longitude
+# ymax = Maximum latitude
+# Format = ext(xmin, xmax, ymin, ymax)
+
+# Define the extent for cropping
+extent <- ext(-180, 14, -60, 90)
+
 ################################################################################
 #### AUTO-GENERATED FILE STRUCTURE ####
 
