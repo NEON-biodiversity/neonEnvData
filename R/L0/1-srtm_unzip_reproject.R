@@ -25,7 +25,8 @@ spat_data <- list.files(
   neon_dir,
   full.names = TRUE
 ) %>%
-  grep("\\.shp$", ., value = TRUE)
+  grep("\\.shp$", ., value = TRUE) %>% 
+  grep("domain_footprint", ., value=T)
 
 # Load and transform SRTM tile grid shapefile to the desired projection
 srtm_tiles <- st_read(elev_tiles) %>%
@@ -35,7 +36,7 @@ srtm_tiles <- st_read(elev_tiles) %>%
 # Identify and process intersecting tiles
 
 # Read and unionize the polygons (e.g., study regions or domains)
-all_doms <- st_read(spat_data[2]) %>% st_union()
+all_doms <- st_read(spat_data) %>% st_union()
 
 # Filter SRTM tiles that intersect with the union of all domains
 all_tiles <- srtm_tiles[st_intersects(srtm_tiles, all_doms, sparse = FALSE), ]
@@ -75,6 +76,9 @@ cropped_projected <- foreach(i = 1:length(all_tiles$id), .packages = c("terra", 
   
   # Reproject the raster tile using the template
   reprojected_tile <- project(raster_tile, template)
+  
+  # Convert all values <-20 to 0
+  reprojected_tile[reprojected_tile < -20] <- 0
   
   # Save the reprojected tile to a specified directory
   terra::writeRaster(
