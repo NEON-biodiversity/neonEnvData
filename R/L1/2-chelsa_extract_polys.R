@@ -46,10 +46,6 @@ for (i in 1:length(spatial_polys)) {
   for (j in 1:length(polygons$geometry)) {
     poly <- polygons[j, ]  # Select the current polygon
     
-    if("siteID" %in% colnames(polygons)){
-      print(paste0("Working on ", poly$siteID))  # Display progress
-    }else(print(paste0("Working on ", poly$domainNumb)))  # Display progress)
-    
     # Process each climate raster for the current polygon
     for (m in 1:length(clim_ras)) {
       if(st_is_empty(poly$geometry)){
@@ -65,10 +61,16 @@ for (i in 1:length(spatial_polys)) {
       # print(var_name)  # Display the variable being processed
       
       # Calculate the mean value of the raster for the polygon
-        val <- mean(terra::values(ras), na.rm = TRUE)
+      val <- mean(terra::values(ras), na.rm = TRUE)
       
       # Assign the mean value to the respective column in the polygons data
-      polygons[j, var_name] <- val
+      polygons[j, paste0(var_name, "_mean")] <- val
+      
+      if(var_name %in% c("bio01", "bio12")){
+        t <- calculate_geodiversity_metrics(ras, metrics_list)
+        names(t) <- paste0(var_name, "_", names(t))
+        polygons[j, names(t)] <- t
+      }
     }
   }
   
