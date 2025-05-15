@@ -20,26 +20,21 @@ library(foreach)   # For parallel iteration
 # source("./R/config.R")
 source("../config.R")
 
-# Load shapefiles of polygons with geodiversity data
-spat_data <- list.files(
-  neon_dir,
-  full.names = TRUE
-) %>%
-  grep("\\.shp$", ., value = TRUE) %>% 
-  grep("domain_footprint", ., value=T)
-
 # Load and transform SRTM tile grid shapefile to the desired projection
 srtm_tiles <- st_read(elev_tiles) %>%
   st_transform(prj)
 
+# Convert extent to sf object
+extent_sf <- st_as_sf(as.polygons(extent))
+st_crs(extent_sf) <- "EPSG:4326"
+extent_sf <- st_transform(extent_sf, prj)
+
+
 ################################################################################
 # Identify and process intersecting tiles
 
-# Read and unionize the polygons (e.g., study regions or domains)
-all_doms <- st_read(spat_data) %>% st_union()
-
-# Filter SRTM tiles that intersect with the union of all domains
-all_tiles <- srtm_tiles[st_intersects(srtm_tiles, all_doms, sparse = FALSE), ]
+# Filter SRTM tiles that intersect with the extent of the data set
+all_tiles <- srtm_tiles[st_intersects(srtm_tiles, extent_sf, sparse = FALSE), ]
 
 
 # Set up parallel processing backend
