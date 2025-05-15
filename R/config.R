@@ -38,6 +38,13 @@ proj_dir <- "/mnt/scratch/kapsarke/neonEnvData/"  # Change to relative path
 # Define the extent for cropping
 extent <- ext(-180, 14, -60, 90)
 
+# Shapefile ID column (unique value per row in each shapefile for which 
+# values are being calculated) 
+id_col <- NA 
+
+# Geodiversity metrics to be extracted 
+metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "std2", "sds")
+
 ################################################################################
 #### AUTO-GENERATED FILE STRUCTURE ####
 
