@@ -3,7 +3,7 @@
 
 #SBATCH -A data-machine
 #SBATCH -J geodiv 
-#SBATCH --mem=1000GB 
+#SBATCH --mem=900GB 
 #SBATCH --cpus-per-task=50
 #SBATCH --time=24:00:00
 
