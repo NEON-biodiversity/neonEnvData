@@ -44,7 +44,6 @@ i <- commandArgs(trailingOnly = TRUE) %>% as.numeric()
 
 # Read and crop tile index shapefile
 srtm_tiles <- st_read(elev_tiles) %>%
-  st_crop(xmin = -180, xmax = -50, ymin = 0, ymax = 90) %>% 
   st_transform(crs = prj)
 
 # Get list of SRTM raster tile files

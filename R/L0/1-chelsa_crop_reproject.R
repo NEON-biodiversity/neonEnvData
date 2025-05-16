@@ -8,12 +8,6 @@
 # REQUIRES:         R libraries: sf, terra, doParallel, foreach
 # NOTES:            Ensure input data files and output directories are properly configured
 
-# Load necessary libraries
-library(sf)        # For spatial data handling
-library(terra)     # For raster data manipulation
-library(doParallel) # For parallel processing
-library(foreach)   # For parallel iteration
-
 # Source configuration settings (e.g., custom projections or paths)
 # source("./R/config.R")
 source("../config.R")

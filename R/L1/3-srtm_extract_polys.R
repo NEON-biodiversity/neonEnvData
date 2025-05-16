@@ -52,9 +52,9 @@ source("./R/config.R")
 # Setup Inputs: Raster Tiles, Domain Polygons, and Metric List
 # -----------------------------------------------------------------------------
 # Example data setup (ensure paths and data files exist as expected)
-srtm_tiles <- st_read(elev_tiles) # %>%
+srtm_tiles <- st_read(elev_tiles) %>%
   # st_crop(xmin = -180, xmax = -50, ymin = 0, ymax = 90) %>%
-  # st_transform(crs = prj)
+  st_transform(crs = prj)
 
 spatial_poly_paths <- grep(".shp", list.files(output_dir_clim, full.names = TRUE), value = TRUE)
 spatial_poly_names <- grep(".shp", list.files(output_dir_clim), value = TRUE) %>% gsub("\\.shp$", "", .)

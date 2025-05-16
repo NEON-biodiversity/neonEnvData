@@ -8,14 +8,21 @@
 # OVERVIEW:         Script for generating file structure for project data and 
 #                   specifying parameters (e.g. projection, radii distances). 
 
+
+list.of.packages <- c("geodiv", "terra", "sf", "dplyr", "gdalUtils", "tidyr", "lwgeom", "ggspatial", "doParallel", "foreach")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)) install.packages(new.packages, repos='http://cran.us.r-project.org')
+
+
 # Libraries 
 library(terra)
 library(sf)
-library(dplyr)
 library(tidyr)
+library(dplyr)
 library(lwgeom)
-library(ggspatial)
-
+# library(ggspatial)
+library(doParallel) # For parallel processing
+library(foreach)   # For parallel iteration
 
 ################################################################################
 #### USER SPECIFIED INPUTS ####
@@ -60,7 +67,8 @@ metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "std2", "sds")
 # L0
 raw_elev_dir <- paste0(proj_dir, "L0/elev_srtm_gl1_v003/raw") # srtm raw data here
 elev_hgt <- paste0(proj_dir, "L0/elev_srtm_gl1_v003/unzipped_hgt")
-elev_tiles <- paste0(proj_dir, "L0/elev_srtm_gl1_v003/tiles/srtm_grid_1deg_epsg5070.shp")
+elev_tile_dir <- paste0(proj_dir, "L0/elev_srtm_gl1_v003/tiles")
+elev_tiles <- paste0(proj_dir, "L0/elev_srtm_gl1_v003/tiles/srtm_grid_1deg.shp")
 
 
 # L1
@@ -115,6 +123,7 @@ setup_project_directories <- function(proj_dir_name) {
   required_dirs <- c(
     raw_elev_dir,
     elev_hgt,
+    elev_tile_dir,
     elev_vrt,
     elev_tif,
     raw_clim_dir,
