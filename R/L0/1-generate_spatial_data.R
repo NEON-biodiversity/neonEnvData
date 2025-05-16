@@ -7,16 +7,12 @@
 # DATE:             January 2025
 # OVERVIEW:         Script for cleaning and reprojecting NEON spatial data
 
-# Load packages
-library(tidyverse)
-library(sf)
-library(lwgeom)
-library(ggspatial)
-
 # Load in data_dir location
 source("./R/config.R")
 
 # Define functions 
+
+# Get center of minimum bounding circle for a set of points
 id_circle_center <- function(d){
   du <- st_union(d)
   b <- lwgeom::st_minimum_bounding_circle(du)
@@ -24,6 +20,7 @@ id_circle_center <- function(d){
   return(c)
 }
 
+# For calculating the minimumn radius needed to encompass all points
 max_dist_to_circle_center <- function(d){
   du <- st_union(d)
   b <- lwgeom::st_minimum_bounding_circle(du)
@@ -61,62 +58,37 @@ plt <- st_read(paste0(neon_raw, "/All_NEON_TOS_Plot_Points_V11.shp"), quiet=T)  
   filter(subtype == "mammalGrid") %>% 
   st_transform(prj) %>%
   # Add in domain information for plots 
-  left_join(., st_drop_geometry(site %>% select(siteID, domainName, domainNumb)), by = c("siteID"))  # %>% 
-# st_write(paste0(neon_dir, "/NEON_small_mammal_plots.shp"), append=F)
+  left_join(., st_drop_geometry(site %>% select(siteID, domainName, domainNumb)), by = c("siteID"))  %>% 
+  st_write(paste0(neon_dir, "/NEON_small_mammal_plots.shp"), append=F)
 
 # Determine small mammal trapping presence at each site
-site <- site %>% 
-  mutate(mamm_pres = ifelse(
-    colSums(st_intersects(plt, ., sparse=FALSE)) > 0, 
-    TRUE, 
-    FALSE
-  ))
+# site <- site %>% 
+#   mutate(mamm_pres = ifelse(
+#     colSums(st_intersects(plt, ., sparse=FALSE)) > 0, 
+#     TRUE, 
+#     FALSE
+#   ))
 
 
-################################################################################
-# Modify site data to indicate whether small mammal plots are present & add climate data siteID
+# Tower data 
+tower <- read.csv(paste0(neon_raw, "/NEON_Field_Site_Metadata_20250516.csv")) %>% 
+  st_as_sf(., coords = c("field_longitude", "field_latitude"), crs = "EPSG:4326") %>% 
+  st_transform(prj) %>% 
+  filter(field_site_type %in% c("Core Terrestrial", "Gradient Terrestrial")) %>%
+  mutate(across(where(is.character), ~na_if(., ""))) %>% 
+  purrr::discard(~all(is.na(.))) %>% 
+  rename(domainID = field_domain_id, 
+         siteID = field_site_id) %>% 
+  select(domainID, siteID)
 
-# site$bioclim_id <- site$siteID
-# site$bioclim_id[site$siteName == "Blandy Experimental Farm Additional TOS Boundary at Casey Tree"] <- "BLAN_TOS"
-# site$bioclim_id[site$siteHost == "University of Alaska, Fairbanks" & site$siteID == "BONA"] <- "BONA_UA"
-# site$bioclim_id[site$siteHost == "Alaska Department of Natural Resources" & site$siteID == "BONA"] <- "BONA_ADNR"
-# site$bioclim_id[site$siteName == "Dakota Coteau Field School Additional TOS Boundary"] <- "DCFS_TOS"
-# site$bioclim_id[site$siteName == "Harvard Forest at Quabbin Reservoir"] <- "HARV_DCR"
-# site$bioclim_id[site$siteName == "Lenoir Landing Additional TOS Boundary at Choctaw National Wildlife Refuge"] <- "LENO_TOS"
-# site$bioclim_id[site$siteName == "Mountain Lake Biological Station Additional TOS Boundary"] <- "MLBS_TOS"
-# site$bioclim_id[site$siteName == "Northern Great Plains Research Laboratory Additional TOS Boundary"] <- "NOGP_TOS"
-# site$bioclim_id[site$siteName == "Rocky Mountain National Park CASTNET Additional TOS at Roosevelt National Forest"] <- "RMNP_TOS"
-# site$bioclim_id[site$siteName == "Smithsonian Environmental Research Center Additional TOS Boundary"] <- "SERC_TOS"
-# site$bioclim_id[site$siteName == "Steigerwaldt Additional TOS Boundary at Chequamegon National Forest"] <- "STEI_TOS"
-# site$bioclim_id[site$siteName == "North Sterling, CO Additional TOS Boundary"] <- "STER_TOS"
-# site$bioclim_id[site$siteName == "Treehaven Additional TOS Boundary"] <- "TREE_TOS"
+tower_plt <- st_buffer(tower, plt_buff_dist) %>% 
+  st_write(paste0(neon_dir, "/NEON_tower_plot_radii.shp"), append=F)
 
-# st_write(site, paste0(neon_dir,"/NEON_sites/NEON_field_sites_mamm.shp"))
+tower_site <- st_buffer(tower, site_buff_dist) %>% 
+  st_write(paste0(neon_dir, "/NEON_tower_site_radii.shp"), append=F)
 
-
-################################################################################
-
-# Add bioclim id to plot level data 
-
-# # Find the intersection between plots and sites
-# intersection_indices <- st_intersects(plt, site)
-# 
-# # Create a new bioclim_id column for each plot
-# plt$bioclim_id <- sapply(seq_along(intersection_indices), function(i) {
-#   # Get the intersecting site(s) for the given plot
-#   intersecting_sites <- intersection_indices[[i]]
-#   
-#   # If there is exactly one intersecting site, return its bioclim_id
-#   if (length(intersecting_sites) == 1) {
-#     return(site$bioclim_id[intersecting_sites])
-#   } else {
-#     # Handle cases where there are no intersecting sites or multiple intersections
-#     return(NA) # or any other way you prefer to handle this case
-#   }
-# })
-
-
-################################################################################
+tower_domain <- st_buffer(tower, site_buff_dist) %>% 
+  st_write(paste0(neon_dir, "/NEON_tower_domain_radii.shp"), append=F)
 
 
 ##### PLOT SCALE (MAMMALS) ##### 
@@ -140,33 +112,21 @@ site_nested <- plt %>%
   mutate(site_poly = st_buffer(circle_center, dist = site_buff_dist))
 # proc.time()-start
 
-plt_circle_center <- plt_nested %>% 
-  dplyr::select(plotID, siteID, domainName, domainNumb, circle_center) %>% 
-  rename(geometry = circle_center) %>% 
-  st_as_sf() # %>%
-  # st_write(paste0(neon_dir, "/NEON_plot_circle_centers.shp"), append=F)
-
 plt_radii <- plt_nested %>% 
   dplyr::select(plotID, siteID, domainName, domainNumb, plot_poly) %>% 
   rename(geometry = plot_poly) %>% 
   st_as_sf() %>% 
-  st_write(paste0(neon_dir, "/NEON_plot_radii.shp"), append=F)
-
-site_circle_center <- site_nested %>% 
-  dplyr::select(siteID, siteID, domainName, domainNumb, circle_center) %>% 
-  rename(geometry = circle_center) %>% 
-  st_as_sf() # %>%  
-  # st_write(paste0(neon_dir, "/NEON_site_circle_centers.shp"), append=F)
+  st_write(paste0(neon_dir, "/NEON_mammal_plot_radii.shp"), append=F)
 
 site_radii <- site_nested %>% 
   dplyr::select(siteID, domainName, domainNumb, site_poly) %>% 
   rename(geometry = site_poly) %>% 
   st_as_sf() %>%  
-  st_write(paste0(neon_dir, "/NEON_site_radii.shp"), append=F)
+  st_write(paste0(neon_dir, "/NEON_mammal_site_radii.shp"), append=F)
 
 dom_radii <- site_nested %>% 
   dplyr::select(siteID, domainName, domainNumb, circle_center) %>% 
   rename(geometry = circle_center) %>% # 100 km centroid around 
   st_as_sf() %>% 
   st_buffer(dom_buff_dist) %>% 
-  st_write(paste0(neon_dir, "/NEON_domain_radii.shp"), append=F)
+  st_write(paste0(neon_dir, "/NEON_mammal_domain_radii.shp"), append=F)
