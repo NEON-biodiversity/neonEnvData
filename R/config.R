@@ -8,6 +8,14 @@
 # OVERVIEW:         Script for generating file structure for project data and 
 #                   specifying parameters (e.g. projection, radii distances). 
 
+# Libraries 
+library(terra)
+library(sf)
+library(dplyr)
+library(tidyr)
+library(lwgeom)
+library(ggspatial)
+
 
 ################################################################################
 #### USER SPECIFIED INPUTS ####
@@ -22,10 +30,10 @@ site_buff_dist = 15000
 plt_buff_dist = 100
 
 # Resolution for srtm data (if coarsened). Starting resolution = 30m 
-elev_res <- "300"
+elev_res <- "30"
 
 ## Project Directory 
-proj_dir <- "/mnt/scratch/kapsarke/neonEnvData/"  # Change to relative path
+proj_dir <- "/mnt/research/plz-lab/neonEnvData/"  # Change to relative path
 
 # Specify geographic extent of the analysis 
 # (so that not all data are loaded in -- saves memory)
