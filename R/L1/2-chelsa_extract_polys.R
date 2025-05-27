@@ -16,8 +16,10 @@ library(terra)     # For raster data manipulation
 library(stringr)   # For string operations
 
 # Load configuration file
-source("./R/L1/2-3-functions.R")
-source("./R/config.R")
+# source("./R/L1/2-3-functions.R")
+# source("./R/config.R")
+source("./2-3-functions.R") # HPCC
+source("../config.R") #HPCC 
 
 # Load shapefiles from the specified directory
 spatial_names <- grep(
