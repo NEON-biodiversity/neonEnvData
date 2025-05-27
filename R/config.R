@@ -8,8 +8,9 @@
 # OVERVIEW:         Script for generating file structure for project data and 
 #                   specifying parameters (e.g. projection, radii distances). 
 
+print(version)
 
-list.of.packages <- c("geodiv", "terra", "sf", "dplyr", "gdalUtils", "tidyr", "lwgeom", "ggspatial", "doParallel", "foreach")
+list.of.packages <- c("geodiv", "terra", "sf", "dplyr", "tidyr", "lwgeom", "ggspatial", "doParallel", "foreach")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos='http://cran.us.r-project.org')
 
@@ -37,10 +38,10 @@ site_buff_dist = 15000
 plt_buff_dist = 100
 
 # Resolution for srtm data (if coarsened). Starting resolution = 30m 
-elev_res <- "30"
+elev_res <- "300"
 
 ## Project Directory 
-proj_dir <- "/mnt/research/plz-lab/neonEnvData/"  # Change to relative path
+proj_dir <- "/mnt/research/neon/neonEnvData/"  # Change to relative path
 
 # Specify geographic extent of the analysis 
 # (so that not all data are loaded in -- saves memory)
@@ -52,6 +53,12 @@ proj_dir <- "/mnt/research/plz-lab/neonEnvData/"  # Change to relative path
 
 # Define the extent for cropping
 extent <- ext(-180, 14, -60, 90)
+
+extent_sf <- c(xmin = -180, xmax = -60, ymax = 90, ymin = 14) %>%
+  st_bbox(crs = st_crs(4326)) %>%
+  st_transform(prj) %>% 
+  st_as_sfc() %>%
+  st_sf() 
 
 # Shapefile ID column (unique value per row in each shapefile for which 
 # values are being calculated) 
@@ -102,7 +109,6 @@ figures <- paste0(proj_dir, "L2/figures")
 # Add in changes to resolution of srtm if needed 
 if(!is.na(elev_res)){
   elev_tif <- paste0(elev_tif, "_", elev_res, "m")
-  elev_vrt <- paste0(elev_vrt, "_", elev_res, "m")
   output_dir_clim_elev <- paste0(output_dir_clim_elev, "_", elev_res, "m")
 }
 
@@ -124,6 +130,7 @@ setup_project_directories <- function(proj_dir_name) {
     raw_elev_dir,
     elev_hgt,
     elev_tile_dir,
+    elev_tile_tif,
     elev_vrt,
     elev_tif,
     raw_clim_dir,
