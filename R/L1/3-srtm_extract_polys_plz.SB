@@ -3,7 +3,7 @@
 
 #SBATCH -A plzbuyin
 #SBATCH -J geodiv 
-#SBATCH --mem=800GB 
+#SBATCH --mem=900GB 
 #SBATCH --cpus-per-task=10 
 #SBATCH --time=24:00:00
 

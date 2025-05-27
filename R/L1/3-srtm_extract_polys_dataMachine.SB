@@ -3,14 +3,15 @@
 
 #SBATCH -A data-machine
 #SBATCH -J geodiv 
-#SBATCH --mem=900GB 
+#SBATCH --mem=500GB 
 #SBATCH --cpus-per-task=50
-#SBATCH --time=24:00:00
+#SBATCH --time=3:59:00
+#SBATCH --array=3-9
 
 module purge
 module load  GDAL/3.7.1-foss-2023a UDUNITS R/4.3.2 PROJ
 
-Rscript /mnt/home/kapsarke/Documents/neonEnvData/R/L1/3-srtm_extract_polys.R
+Rscript /mnt/home/kapsarke/Documents/neonEnvData/R/L1/3-srtm_extract_polys.R  ${SLURM_ARRAY_TASK_ID} 
 
 
 #SBATCH --output=%j.SLURMout
