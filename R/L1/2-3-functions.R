@@ -52,32 +52,40 @@ srtm_intersection <- function(srtm_tiles, srtm_tile_files, polygon, tif_path, vr
     return(NA)
   }
   
-  # Filter tile files that match intersecting tiles
+  ## Step 1: Filter tiles that intersect
   tiles <- srtm_tile_files %>%
     grep(paste(unique(intersecting_tiles$id), collapse = "|"), ., value = TRUE)
   
-  output_vrt <- paste0(vrt_path, "/", ID, ".vrt")
-
-  # Create the virtual raster
-  if(!file.exists(output_vrt)){
-    # Step 1: Create the VRT (high-res, lightweight pointer)
-    gdalbuildvrt(gdalfile = tiles, output.vrt = output_vrt)
-    
-  }
-  # Step 2: Warp it to a new VRT at lower resolution
+  # Create file paths
+  output_vrt <- file.path(vrt_path, paste0(ID, "_30.vrt"))
   output_vrt_agg <- file.path(vrt_path, paste0(ID, "_", elev_res, ".vrt"))
   
-  # Create the virtual raster
-  if(!file.exists(output_vrt_agg)){
-    gdalwarp(srcfile = output_vrt,
-             dstfile = output_vrt_agg,
-             tr = c(as.numeric(elev_res), as.numeric(elev_res)),# target resolution in meters
-             of = "VRT",                # output format
-             overwrite = TRUE,
-             r = "average")             # resampling method
+  # Step 2: Build the original high-resolution VRT
+  if (!file.exists(output_vrt)) {
+    gdalbuild_cmd <- paste(
+      "gdalbuildvrt",
+      shQuote(output_vrt),
+      paste(shQuote(tiles), collapse = " ")
+    )
+    system(gdalbuild_cmd)
   }
   
-  vr <- terra::vrt(output_vrt_agg)
+  # Step 3: Resample VRT to lower resolution
+  if (!file.exists(output_vrt_agg)) {
+    res <- as.numeric(elev_res)
+    gdalwarp_cmd <- paste(
+      "gdalwarp",
+      "-tr", res, res,          # target resolution
+      "-r average",             # resampling method
+      "-of VRT",                # output format
+      shQuote(output_vrt),      # input VRT
+      shQuote(output_vrt_agg)   # output VRT
+    )
+    system(gdalwarp_cmd)
+  }
+  
+  # Step 4: Load the resampled VRT
+  vr <- terra::rast(output_vrt_agg)
 
   # Intersect rasters
   output_ras <- paste0(tif_path, "/", ID, "_", elev_res, ".tif" )
@@ -148,12 +156,7 @@ calculate_geodiversity_metrics <- function(raster, metrics_list) {
 #' spatial_poly <- st_read("path/to/polygon_file.shp")
 #' process_polygon(srtm_tiles, srtm_tile_files, spatial_poly, "polygon_file.shp", metrics_list, output_dir)
 process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_poly_name, id_col, metrics_list, output_dir, vrt_dir, tif_dir, elev_res) {
-  
-  # Ensure output directory exists
-  if (!dir.exists(output_dir)) {
-    dir.create(output_dir, recursive = TRUE)
-  }
-  
+
   print(paste0("Processing polygon set: ", spatial_poly_name))
   
   # Placeholder to store metrics for each polygon
