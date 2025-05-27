@@ -1,0 +1,15 @@
+#!/bin/bash -login 
+
+
+#SBATCH -A plzbuyin
+#SBATCH -J neonEnvData 
+#SBATCH --mem=750GB 
+#SBATCH --cpus-per-task=25
+#SBATCH --time=3:59:00
+
+module purge
+module load  GDAL/3.7.1-foss-2023a UDUNITS R/4.3.2 PROJ
+
+Rscript /mnt/home/kapsarke/Documents/neonEnvData/R/L1/2-chelsa_extract_polys.R
+
+#SBATCH --output=%j.SLURMout
