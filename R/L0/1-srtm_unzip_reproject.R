@@ -9,13 +9,6 @@
 # REQUIRES:         R libraries: terra, sf, dplyr
 # NOTES:            Ensure proper directory structure and data availability
 
-# Load required libraries
-library(terra)  # For raster data manipulation
-library(sf)     # For spatial data manipulation
-library(dplyr)  # For data wrangling
-library(doParallel) # For parallel processing
-library(foreach)   # For parallel iteration
-
 # Source configuration settings (e.g., custom projections or paths)
 # source("./R/config.R")
 source("../config.R")
@@ -24,18 +17,12 @@ source("../config.R")
 srtm_tiles <- st_read(elev_tiles) %>%
   st_transform(prj)
 
-# Convert extent to sf object
-extent_sf <- st_as_sf(as.polygons(extent))
-st_crs(extent_sf) <- "EPSG:4326"
-extent_sf <- st_transform(extent_sf, prj)
-
 
 ################################################################################
 # Identify and process intersecting tiles
 
 # Filter SRTM tiles that intersect with the extent of the data set
-all_tiles <- srtm_tiles[st_intersects(srtm_tiles, extent_sf, sparse = FALSE), ]
-
+all_tiles <- srtm_tiles[st_intersects(extent_sf, srtm_tiles, sparse = FALSE), ]
 
 # Set up parallel processing backend
 # Use the number of cores available on the MSU HPCC cluster
