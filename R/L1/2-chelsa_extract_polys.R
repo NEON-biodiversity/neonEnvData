@@ -16,10 +16,10 @@ library(terra)     # For raster data manipulation
 library(stringr)   # For string operations
 
 # Load configuration file
-# source("./R/L1/2-3-functions.R")
-# source("./R/config.R")
-source("./2-3-functions.R") # HPCC
-source("../config.R") #HPCC 
+source("./R/L1/2-3-functions.R")
+source("./R/config.R")
+# source("./2-3-functions.R") # HPCC
+# source("../config.R") #HPCC
 
 # Load shapefiles from the specified directory
 spatial_names <- grep(
@@ -43,10 +43,18 @@ for (i in 1:length(spatial_polys)) {
   polygons <- spatial_polys[[i]]  # Select the current polygon set
   
   print(paste0("Processing ", spatial_names[[i]]))
+  
+  id_col <-ifelse(grepl("tower", spatial_names[[i]]), "siteID", 
+            ifelse(grepl("plot", spatial_names[[i]]), "plotID",
+            ifelse(grepl("site", spatial_names[[i]]), "siteID",
+            ifelse(grepl("domain_radii", spatial_names[[i]]), "siteID",
+            ifelse(grepl("domain_footprint", spatial_names[[i]]), "domainNumb", id_col)))))
 
   # Loop through each polygon in the set
   for (j in 1:length(polygons$geometry)) {
     poly <- polygons[j, ]  # Select the current polygon
+    
+    id_val <- st_drop_geometry(poly[1, id_col])[[1]]
     
     # Process each climate raster for the current polygon
     for (m in 1:length(clim_ras)) {
@@ -60,7 +68,9 @@ for (i in 1:length(spatial_polys)) {
       num <- sub("bio", "", parts[2])
       var_name <- paste0("bio", sprintf("%02d", as.integer(num)))
       
-      # print(var_name)  # Display the variable being processed
+      # Save output raster for later visualizations
+      ras_name <- paste0(tools::file_path_sans_ext(basename(spatial_names[i])), "_", id_val, "_", var_name, ".tif")
+      terra::writeRaster(ras, file.path(clim_tif_neon, ras_name), overwrite=T)
       
       # Calculate the mean value of the raster for the polygon
       val <- mean(terra::values(ras), na.rm = TRUE)
