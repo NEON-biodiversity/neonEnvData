@@ -56,9 +56,9 @@ extent <- ext(-180, 14, -60, 90)
 
 extent_sf <- c(xmin = -180, xmax = -60, ymax = 90, ymin = 14) %>%
   st_bbox(crs = st_crs(4326)) %>%
+  st_as_sfc() %>%          
   st_transform(prj) %>% 
-  st_as_sfc() %>%
-  st_sf() 
+  st_sf()     
 
 # Shapefile ID column (unique value per row in each shapefile for which 
 # values are being calculated) 
@@ -91,6 +91,7 @@ elev_vrt <- paste0(proj_dir, "L1/elev_vrt")
 raw_clim_dir <- paste0(proj_dir, "L0/climate_chelsa_1981-2009")
 # L1
 clim_tif <- paste0(proj_dir, "L1/climate_", prj_name)
+clim_tif_neon <- paste0(proj_dir, "L1/climate_tif")
 
 ## NEON
 # L0
@@ -103,7 +104,6 @@ output_dir <- paste0(proj_dir, "L2")
 output_dir_clim <- paste0(proj_dir, "L2/clim_only")
 output_dir_clim_elev <- paste0(proj_dir, "L2/clim_elev")
 # output_dir_clim_elev_300m <- paste0(proj_dir, "L2/clim_elev_300m")
-output_dir_domain_footprint <- paste0(proj_dir, "L2/domain_footprint")
 figures <- paste0(proj_dir, "L2/figures")
 
 # Add in changes to resolution of srtm if needed 
@@ -135,10 +135,10 @@ setup_project_directories <- function(proj_dir_name) {
     elev_tif,
     raw_clim_dir,
     clim_tif,
+    clim_tif_neon,
     neon_raw,
     neon_dir,
     output_dir, 
-    output_dir_domain_footprint,
     output_dir_clim, 
     output_dir_clim_elev,
     figures

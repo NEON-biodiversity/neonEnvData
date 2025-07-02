@@ -15,12 +15,12 @@
 # Load Custom Functions and Configuration
 # -----------------------------------------------------------------------------
 # Load custom functions
-# source("./R/L1/2-3-functions.R")
-source("2-3-functions.R") # HPCC
+source("./R/L1/2-3-functions.R")
+# source("2-3-functions.R") # HPCC
 
 # Load configuration file
-# source("./R/config.R")
-source("../config.R") # HPCC
+source("./R/config.R")
+# source("../config.R") # HPCC
 
 
 # -----------------------------------------------------------------------------
@@ -59,7 +59,7 @@ spatial_poly_names <- grep(".shp", list.files(output_dir_clim), value = TRUE) %>
 
 
 # Apply the updated function to each file
-lapply(c(1,2,3,5), function(i) {
+lapply(c(1:5), function(i) {
   process_polygons(srtm_tiles = srtm_tiles,
                    srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
                    spatial_poly = st_read(spatial_poly_paths[[i]]),

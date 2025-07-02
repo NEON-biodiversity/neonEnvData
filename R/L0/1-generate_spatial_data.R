@@ -59,7 +59,7 @@ plt <- st_read(paste0(neon_raw, "/All_NEON_TOS_Plot_Points_V11.shp"), quiet=T)  
   st_transform(prj) %>%
   # Add in domain information for plots 
   left_join(., st_drop_geometry(site %>% select(siteID, domainName, domainNumb)), by = c("siteID")) # %>%
-  # st_write(paste0(neon_dir, "/NEON_small_mammal_plots.shp"), append=F)
+  # st_write(paste0(neon_dir, "/NEON_mammal_plot_footptint.shp"), append=F)
 
 # Determine small mammal trapping presence at each site
 # site <- site %>% 
