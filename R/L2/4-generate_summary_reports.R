@@ -12,68 +12,8 @@ dirs <- list(
   "clim_elev_300m" = "/mnt/research/neon/neonEnvData/L2/clim_elev_300m/"
 )
 
-# Function to summarize a shapefile
-summarize_shapefile <- function(file_path, elev_res) {
-  message("Processing: ", file_path)
-  shp <- st_read(file_path, quiet = TRUE)
-  
-  # Keep only numeric columns
-  numeric_data <- shp %>% st_drop_geometry() %>% select(where(is.numeric))
-  
-  # Compute summary statistics
-  summary_stats <- numeric_data %>% 
-    summarise(across(everything(), list(
-      min = ~min(.x, na.rm = TRUE),
-      median = ~median(.x, na.rm = TRUE),
-      max = ~max(.x, na.rm = TRUE),
-      na_count = ~sum(is.na(.x))
-    ), .names = "{.col}_{.fn}"))
-  
-  # Convert to tidy format
-  summary_tidy <- summary_stats %>%
-    pivot_longer(
-      cols = everything(),
-      names_to = c("var_stat", "measure"),
-      names_pattern = "^(.*)_(min|median|max|na_count)$"
-    ) %>%
-    separate(var_stat, into = c("variable", "stat"), sep = "_(?=[^_]+$)") %>%
-    pivot_wider(
-      names_from = measure,
-      values_from = value
-    )
-  
-  # --- Add metadata columns ---
-  file_name <- basename(file_path)
-  
-  # Determine centroid type
-  centroid <- case_when(
-    str_detect(file_name, "tower") ~ "tower",
-    str_detect(file_name, "mammal") ~ "small mammal",
-    str_detect(file_name, "footprint") ~ "footprint",
-    TRUE ~ NA_character_
-  )
-  
-  # Determine scale from file name
-  scale <- case_when(
-    str_detect(file_name, "plot") ~ "plot",
-    str_detect(file_name, "site") ~ "site",
-    str_detect(file_name, "domain") ~ "domain",
-    TRUE ~ NA_character_
-  )
-  
-  # Add metadata columns to the tidy summary
-  summary_tidy <- summary_tidy %>%
-    mutate(
-      centroid = centroid,
-      elev_res = elev_res,
-      scale = scale,
-      source_file = file_name
-    ) %>%
-    relocate(centroid, scale, elev_res, source_file, .before = variable)  
-  
-  return(summary_tidy)
-}
-
+# Load in functions
+source("./R/L2/4-functions.R")
 
 # Combine all summaries
 all_summaries <- list()
@@ -81,7 +21,7 @@ all_summaries <- list()
 for (label in names(dirs)) {
   dir_path <- dirs[[label]]
   elev_res <- ifelse(str_detect(label, "30m"), 30, 300)
-  shapefiles <- list.files(dir_path, pattern = "\\.shp$", full.names = TRUE)
+  shapefiles <- list.files(dir_path, pattern = "\\.gpkg$", full.names = TRUE)
   
   for (shp_file in shapefiles) {
     # Temp code to count number of rows in each data set to confirm accuracy
