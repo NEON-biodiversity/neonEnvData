@@ -10,7 +10,7 @@
 
 print(version)
 
-list.of.packages <- c("geodiv", "terra", "sf", "dplyr", "tidyr", "lwgeom", "ggspatial", "doParallel", "foreach")
+list.of.packages <- c("geodiv", "terra", "sf", "dplyr", "tidyr", "lwgeom", "ggspatial", "doParallel", "foreach", "stringr")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos='http://cran.us.r-project.org')
 
@@ -38,7 +38,7 @@ site_buff_dist = 15000
 plt_buff_dist = 100
 
 # Resolution for srtm data (if coarsened). Starting resolution = 30m 
-elev_res <- "300"
+elev_res <- "30"
 
 ## Project Directory 
 proj_dir <- "/mnt/research/neon/neonEnvData/"  # Change to relative path
