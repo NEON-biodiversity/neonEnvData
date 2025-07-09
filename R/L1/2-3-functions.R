@@ -153,8 +153,8 @@ calculate_geodiversity_metrics <- function(raster, metrics_list) {
 #' @return None. Saves the updated polygon with geodiversity metrics to the specified directory.
 #' @examples
 #' metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "sds", "std2")
-#' spatial_poly <- st_read("path/to/polygon_file.shp")
-#' process_polygon(srtm_tiles, srtm_tile_files, spatial_poly, "polygon_file.shp", metrics_list, output_dir)
+#' spatial_poly <- st_read("path/to/polygon_file.gpkg")
+#' process_polygon(srtm_tiles, srtm_tile_files, spatial_poly, "polygon_file.gpkg", metrics_list, output_dir)
 process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_poly_name, id_col, metrics_list, output_dir, vrt_dir, tif_dir, elev_res) {
 
   print(paste0("Processing polygon set: ", spatial_poly_name))
@@ -163,7 +163,9 @@ process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_
   metrics_values <- list()
   
   # Process each polygon
-  for (j in 1:length(spatial_poly$geometry)) {
+  for (j in 1:length(spatial_poly$geom)) {
+    
+    print(paste0("ROUND: ", j))
     polygon <- spatial_poly[j, ]
     
     # Generate name for virtual raster 
@@ -213,9 +215,9 @@ process_polygons <- function(srtm_tiles, srtm_tile_files, spatial_poly, spatial_
   
   # Generate the output file path
   if(length(metrics_list) == 1){
-    output_path <- file.path(output_dir, paste0(spatial_poly_name,"_", metrics_list, ".shp"))
+    output_path <- file.path(output_dir, paste0(spatial_poly_name,"_", metrics_list, ".gpkg"))
   }else(
-    output_path <- file.path(output_dir, paste0(spatial_poly_name, ".shp"))
+    output_path <- file.path(output_dir, paste0(spatial_poly_name, ".gpkg"))
   )
   # Save the updated polygons with metrics
   st_write(out_polys, output_path, append=FALSE)
