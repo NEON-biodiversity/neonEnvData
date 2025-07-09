@@ -10,20 +10,16 @@
 # REQUIRES:         R libraries: sf, terra, stringr
 # NOTES:            Ensure input directories contain required data files
 
-# Load necessary libraries
-library(sf)        # For spatial data handling
-library(terra)     # For raster data manipulation
-library(stringr)   # For string operations
 
 # Load configuration file
-source("./R/L1/2-3-functions.R")
-source("./R/config.R")
-# source("./2-3-functions.R") # HPCC
-# source("../config.R") #HPCC
+# source("./R/L1/2-3-functions.R")
+# source("./R/config.R")
+source("./2-3-functions.R") # HPCC
+source("../config.R") #HPCC
 
 # Load shapefiles from the specified directory
 spatial_names <- grep(
-  ".shp", 
+  ".gpkg", 
   list.files(neon_dir, full.names = TRUE), 
   value = TRUE
 )
@@ -51,17 +47,17 @@ for (i in 1:length(spatial_polys)) {
             ifelse(grepl("domain_footprint", spatial_names[[i]]), "domainNumb", id_col)))))
 
   # Loop through each polygon in the set
-  for (j in 1:length(polygons$geometry)) {
+  for (j in 1:length(polygons$geom)) {
     poly <- polygons[j, ]  # Select the current polygon
     
     id_val <- st_drop_geometry(poly[1, id_col])[[1]]
     
     # Process each climate raster for the current polygon
     for (m in 1:length(clim_ras)) {
-      if(st_is_empty(poly$geometry)){
+      if(st_is_empty(poly$geom)){
         next
       }else(
-        ras <- clim_ras[[m]] %>% intersect_raster_with_polygon(st_buffer(poly, 10), .)
+        ras <- clim_ras[[m]] %>% intersect_raster_with_polygon(poly, .)
       )
       # Extract variable name from raster name
       parts <- strsplit(names(ras), "_")[[1]]
@@ -90,7 +86,7 @@ for (i in 1:length(spatial_polys)) {
   file_name <- sub(".*/([^/]+)\\.[^\\.]+$", "\\1", spatial_names[i])
   
   # Save the updated polygons as a new shapefile
-  st_write(polygons, paste0(output_dir_clim, "/", file_name, ".shp"))
+  st_write(polygons, paste0(output_dir_clim, "/", file_name, ".gpkg"))
   
   # Replace the processed polygons in the list
   spatial_polys[[i]] <- polygons

@@ -36,8 +36,8 @@ i <- 7
 srtm_tiles <- st_read(elev_tiles) %>%
   st_transform(crs = prj)
 
-spatial_poly_paths <- grep(".shp", list.files(output_dir_clim, full.names = TRUE), value = TRUE)
-spatial_poly_names <- grep(".shp", list.files(output_dir_clim), value = TRUE) %>% gsub("\\.shp$", "", .)
+spatial_poly_paths <- grep(".gpkg", list.files(output_dir_clim, full.names = TRUE), value = TRUE)
+spatial_poly_names <- grep(".gpkg", list.files(output_dir_clim), value = TRUE) %>% gsub("\\.gpkg$", "", .)
 
 
 # -----------------------------------------------------------------------------
@@ -91,9 +91,9 @@ lapply(c(6,8), function(i) {
 ###
 # For testing
 # srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE)
-# spatial_poly = st_read(spatial_poly_paths[[8]])
-# spatial_poly_name = spatial_poly_names[[8]]
-# id_col = "siteID"
+# spatial_poly = st_read(spatial_poly_paths[[3]])
+# spatial_poly_name = spatial_poly_names[[3]]
+# id_col = "plotID"
 #   # ifelse(grepl("plot", spatial_poly_name), "plotID",
 #   #        ifelse(grepl("site", spatial_poly_name), "siteID",
 #   #               ifelse(grepl("domain_radii", spatial_poly_name), "siteID",

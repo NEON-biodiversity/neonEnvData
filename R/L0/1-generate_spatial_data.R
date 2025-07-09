@@ -40,7 +40,7 @@ dom <- st_read(paste0(neon_raw, "/NEON_Domains.shp"), quiet=T) %>%
   rename(domainNumb = domainID) %>% 
   mutate(domainNumb = factor(domainNumb)) %>% 
   select(domainName, domainNumb) %>% 
-  st_write(paste0(neon_dir,"/NEON_domain_footprint.shp"), append=F)
+  st_write(paste0(neon_dir,"/NEON_domain_footprint.gpkg"), append=F)
 
 site <- st_read(paste0(neon_raw, "/terrestrialSamplingBoundaries.shp"), quiet=T)  %>% 
   st_transform(prj) %>% 
@@ -51,7 +51,7 @@ site <- st_read(paste0(neon_raw, "/terrestrialSamplingBoundaries.shp"), quiet=T)
     domainNumb = first(domainNumb),
     geometry = st_union(geometry)
   ) %>%
-  st_write(paste0(neon_dir,"/NEON_site_footprint.shp"), append=F)
+  st_write(paste0(neon_dir,"/NEON_site_footprint.gpkg"), append=F)
 
 
 plt <- st_read(paste0(neon_raw, "/All_NEON_TOS_Plot_Points_V11.shp"), quiet=T)  %>% 
@@ -59,7 +59,7 @@ plt <- st_read(paste0(neon_raw, "/All_NEON_TOS_Plot_Points_V11.shp"), quiet=T)  
   st_transform(prj) %>%
   # Add in domain information for plots 
   left_join(., st_drop_geometry(site %>% select(siteID, domainName, domainNumb)), by = c("siteID")) # %>%
-  # st_write(paste0(neon_dir, "/NEON_mammal_plot_footptint.shp"), append=F)
+  # st_write(paste0(neon_dir, "/NEON_mammal_plot_footptint.gpkg"), append=F)
 
 # Determine small mammal trapping presence at each site
 # site <- site %>% 
@@ -82,13 +82,13 @@ tower <- read.csv(paste0(neon_raw, "/NEON_Field_Site_Metadata_20250516.csv")) %>
   select(domainID, siteID)
 
 tower_plt <- st_buffer(tower, plt_buff_dist) %>% 
-  st_write(paste0(neon_dir, "/NEON_tower_plot_radii.shp"), append=F)
+  st_write(paste0(neon_dir, "/NEON_tower_plot_radii.gpkg"), append=F)
 
 tower_site <- st_buffer(tower, site_buff_dist) %>% 
-  st_write(paste0(neon_dir, "/NEON_tower_site_radii.shp"), append=F)
+  st_write(paste0(neon_dir, "/NEON_tower_site_radii.gpkg"), append=F)
 
 tower_domain <- st_buffer(tower, site_buff_dist) %>% 
-  st_write(paste0(neon_dir, "/NEON_tower_domain_radii.shp"), append=F)
+  st_write(paste0(neon_dir, "/NEON_tower_domain_radii.gpkg"), append=F)
 
 
 ##### PLOT SCALE (MAMMALS) ##### 
@@ -116,17 +116,17 @@ plt_radii <- plt_nested %>%
   dplyr::select(plotID, siteID, domainName, domainNumb, plot_poly) %>% 
   rename(geometry = plot_poly) %>% 
   st_as_sf() %>% 
-  st_write(paste0(neon_dir, "/NEON_mammal_plot_radii.shp"), append=F)
+  st_write(paste0(neon_dir, "/NEON_mammal_plot_radii.gpkg"), append=F)
 
 site_radii <- site_nested %>% 
   dplyr::select(siteID, domainName, domainNumb, site_poly) %>% 
   rename(geometry = site_poly) %>% 
   st_as_sf() %>%  
-  st_write(paste0(neon_dir, "/NEON_mammal_site_radii.shp"), append=F)
+  st_write(paste0(neon_dir, "/NEON_mammal_site_radii.gpkg"), append=F)
 
 dom_radii <- site_nested %>% 
   dplyr::select(siteID, domainName, domainNumb, circle_center) %>% 
   rename(geometry = circle_center) %>% # 100 km centroid around 
   st_as_sf() %>% 
   st_buffer(dom_buff_dist) %>% 
-  st_write(paste0(neon_dir, "/NEON_mammal_domain_radii.shp"), append=F)
+  st_write(paste0(neon_dir, "/NEON_mammal_domain_radii.gpkg"), append=F)
