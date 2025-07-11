@@ -15,19 +15,12 @@
 # Load Custom Functions and Configuration
 # -----------------------------------------------------------------------------
 # Load custom functions
-source("./R/L1/2-3-functions.R")
-# source("2-3-functions.R") # HPCC
+# source("./R/L1/2-3-functions.R")
+source("2-3-functions.R") # HPCC
 
 # Load configuration file
-source("./R/config.R")
-# source("../config.R") # HPCC
-
-
-# -----------------------------------------------------------------------------
-# Read Command Line Argument (for batch/array job index)
-# -----------------------------------------------------------------------------
-# i <- commandArgs(trailingOnly = TRUE)
-i <- 7
+# source("./R/config.R")
+source("../config.R") # HPCC
 
 # -----------------------------------------------------------------------------
 # Setup Inputs: Raster Tiles, Domain Polygons, and Metric List
@@ -59,23 +52,23 @@ spatial_poly_names <- grep(".gpkg", list.files(output_dir_clim), value = TRUE) %
 
 
 # Apply the updated function to each file
-lapply(c(1:5), function(i) {
-  process_polygons(srtm_tiles = srtm_tiles,
-                   srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
-                   spatial_poly = st_read(spatial_poly_paths[[i]]),
-                   spatial_poly_name = spatial_poly_names[[i]],
-                   id_col = ifelse(grepl("plot", spatial_poly_names[[i]]), "plotID",
-                             ifelse(grepl("site", spatial_poly_names[[i]]), "siteID",
-                             ifelse(grepl("domain_radii", spatial_poly_names[[i]]), "siteID",
-                             ifelse(grepl("domain_footprint", spatial_poly_names[[i]]), "domainNumb", NA)))),
-                   metrics_list = metrics_list,
-                   vrt_dir = elev_vrt,
-                   tif_dir = elev_tif,
-                   output_dir = output_dir_clim_elev, 
-                   elev_res = elev_res)
-})
+# lapply(c(2:8), function(i) {
+#   process_polygons(srtm_tiles = srtm_tiles,
+#                    srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
+#                    spatial_poly = st_read(spatial_poly_paths[[i]]),
+#                    spatial_poly_name = spatial_poly_names[[i]],
+#                    id_col = ifelse(grepl("plot", spatial_poly_names[[i]]), "plotID",
+#                              ifelse(grepl("site", spatial_poly_names[[i]]), "siteID",
+#                              ifelse(grepl("domain_radii", spatial_poly_names[[i]]), "siteID",
+#                              ifelse(grepl("domain_footprint", spatial_poly_names[[i]]), "domainNumb", NA)))),
+#                    metrics_list = metrics_list,
+#                    vrt_dir = elev_vrt,
+#                    tif_dir = elev_tif,
+#                    output_dir = output_dir_clim_elev, 
+#                    elev_res = elev_res)
+# })
 
-lapply(c(6,8), function(i) {
+lapply(c(7:8), function(i) {
   process_polygons(srtm_tiles = srtm_tiles,
                    srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
                    spatial_poly = st_read(spatial_poly_paths[[i]]),
@@ -84,7 +77,7 @@ lapply(c(6,8), function(i) {
                    metrics_list = metrics_list,
                    vrt_dir = elev_vrt,
                    tif_dir = elev_tif,
-                   output_dir = output_dir_clim_elev, 
+                   output_dir = output_dir_clim_elev,
                    elev_res = elev_res)
 })
 

@@ -86,7 +86,7 @@ for (i in 1:length(spatial_polys)) {
   file_name <- sub(".*/([^/]+)\\.[^\\.]+$", "\\1", spatial_names[i])
   
   # Save the updated polygons as a new shapefile
-  st_write(polygons, paste0(output_dir_clim, "/", file_name, ".gpkg"))
+  st_write(polygons, paste0(output_dir_clim, "/", file_name, ".gpkg"), append=F)
   
   # Replace the processed polygons in the list
   spatial_polys[[i]] <- polygons
