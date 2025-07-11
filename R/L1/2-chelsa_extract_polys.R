@@ -6,7 +6,8 @@
 # DATE:             December 2024
 # OVERVIEW:         This script takes reprojected climate rasters for each of the
 #                   19 biovars, intersects them with NEON spatial data, and calculates
-#                   the mean value for each biovar for each spatial object. 
+#                   the mean value for each biovar for each spatial object and geodiversity
+#                   metrics for biovars 01 and 12. 
 # REQUIRES:         R libraries: sf, terra, stringr
 # NOTES:            Ensure input directories contain required data files
 

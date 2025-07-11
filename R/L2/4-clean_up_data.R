@@ -1,3 +1,17 @@
+# =============================================================================
+# TITLE:            Geopackage data cleaning
+# PROJECT:          NEON Geodiversity Analysis
+# AUTHORS:          Kelly Kapsar, Pat Bills, Phoebe Zarnetske 
+# COLLABORATORS:    Lala Kounta
+# DATA INPUT:       geopackage files output from 3-srtm_extract_polys.R
+# DATA OUTPUT:      Clean geopackage feils with geodiversity metrics
+# DATE:             July 2025
+# OVERVIEW:         Adds srtm resolution to file name and converts columns with 
+#                   all 0 values to NAs. 
+# =============================================================================
+
+
+
 library(sf)
 library(dplyr)
 library(tidyr)

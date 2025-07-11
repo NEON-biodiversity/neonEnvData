@@ -1,4 +1,4 @@
-# TITLE:            Geodiversity Data Cleaning
+# TITLE:            Elevation Data Cleaning
 # PROJECT:          NEON Geodiversity Analysis
 # AUTHORS:          Kelly Kapsar, Pat Bills, Phoebe Zarnetske 
 # COLLABORATORS:    Lala Kounta

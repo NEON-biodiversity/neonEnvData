@@ -4,7 +4,7 @@
 # COLLABORATORS:    Lala Kounta
 # DATA INPUT:       NA
 # DATA OUTPUT:      File structure for neonEnvData project
-# DATE:             January 2025
+# DATE:             July 2025
 # OVERVIEW:         Script for generating file structure for project data and 
 #                   specifying parameters (e.g. projection, radii distances). 
 
@@ -38,7 +38,7 @@ site_buff_dist = 15000
 plt_buff_dist = 100
 
 # Resolution for srtm data (if coarsened). Starting resolution = 30m 
-elev_res <- "30"
+elev_res <- "300"
 
 ## Project Directory 
 proj_dir <- "/mnt/research/neon/neonEnvData/"  # Change to relative path

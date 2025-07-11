@@ -1,3 +1,17 @@
+# =============================================================================
+# TITLE:            Data Paper Figure 3
+# PROJECT:          NEON Geodiversity Analysis
+# AUTHORS:          Kelly Kapsar, Pat Bills, Phoebe Zarnetske 
+# COLLABORATORS:    Lala Kounta
+# DATA INPUT:       geoTIFF files and geopackage file for desired metric/scale
+# DATA OUTPUT:      PNG of violin plots and rasters of min and max values for metric
+# DATE:             July 2025
+# OVERVIEW:         Function to create violin plot of distribution of values for
+#                   a specified metric/input file and also generate raster images
+#                   of the extreme values for that scale. 
+# =============================================================================
+
+# Load libraries
 library(sf)
 library(ggplot2)
 library(terra)

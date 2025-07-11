@@ -1,3 +1,16 @@
+# =============================================================================
+# TITLE:            Data Paper Figure 1 Code
+# PROJECT:          NEON Geodiversity Analysis
+# AUTHORS:          Kelly Kapsar, Pat Bills, Phoebe Zarnetske 
+# COLLABORATORS:    Lala Kounta
+# DATA INPUT:       .gpkg files from cleaned neon data 
+# DATA OUTPUT:      Png files of representative scales of extraction
+# DATE:             July 2025
+# OVERVIEW:         Schematic diagram of spatial scale for data extraction
+# =============================================================================
+
+
+
 # Load necessary libraries
 library(sf)
 library(dplyr)

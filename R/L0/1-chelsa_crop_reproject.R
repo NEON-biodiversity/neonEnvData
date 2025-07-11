@@ -6,7 +6,6 @@
 # DATE:             December 2024
 # OVERVIEW:         This script crops and reprojects climate raster data in parallel
 # REQUIRES:         R libraries: sf, terra, doParallel, foreach
-# NOTES:            Ensure input data files and output directories are properly configured
 
 # Source configuration settings (e.g., custom projections or paths)
 # source("./R/config.R")

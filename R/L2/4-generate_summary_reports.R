@@ -1,3 +1,16 @@
+# =============================================================================
+# TITLE:            Geodiversity Summary Reports
+# PROJECT:          NEON Geodiversity Analysis
+# AUTHORS:          Kelly Kapsar, Pat Bills, Phoebe Zarnetske 
+# COLLABORATORS:    Lala Kounta
+# DATA INPUT:       .gpkg data output from 3-srtm_extract_polys.R
+# DATA OUTPUT:      CSV summary of geopackage file variables 
+# DATE:             July 2025
+# OVERVIEW:         Generates summary report of min, max, median,0 and NA values  
+#                   from extracted data 
+# =============================================================================
+
+
 library(sf)
 library(dplyr)
 library(tidyr)
