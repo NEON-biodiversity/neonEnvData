@@ -8,7 +8,7 @@
 #SBATCH --time=3:59:00
 
 module purge
-module load  GDAL/3.7.1-foss-2023a UDUNITS R/4.3.2 PROJ
+module load  R-bundle-CRAN/2023.12-foss-2023a
 
 Rscript /mnt/home/kapsarke/Documents/neonEnvData/R/L1/2-chelsa_extract_polys.R
 
