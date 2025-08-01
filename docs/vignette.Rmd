@@ -15,6 +15,11 @@ output:
 
 <style type="text/css">
 
+TOC {
+  z-index: 9999 !important;
+  background-color: white;  /* Optional: ensures text isn't visible behind */
+  position: fixed;
+}
 h1 {
 font-weight: bold;
 }
