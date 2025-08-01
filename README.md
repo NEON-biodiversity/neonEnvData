@@ -24,6 +24,8 @@ The high-level workflow includes the following steps:
 4. **Data Integration**: Combine climate and geodiversity data for each spatial unit.
 5. **Visualization and Output**: Generate  plots and save processed datasets for further analysis.
 
+**[For a more detailed walthrough of the worlkflow, see the vignette](/docs/vignette.html)**
+
 ## Location of Data
 
 - **SRTM Data**: SRTM_gl1_v003 available from [NASA EarthData](https://search.earthdata.nasa.gov/)
