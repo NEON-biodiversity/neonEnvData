@@ -24,7 +24,7 @@ The high-level workflow includes the following steps:
 4. **Data Integration**: Combine climate and geodiversity data for each spatial unit.
 5. **Visualization and Output**: Generate  plots and save processed datasets for further analysis.
 
-**[For a more detailed walthrough of the worlkflow, see the vignette](/docs/vignette.html)**
+**[For a more detailed walthrough of the worlkflow, see the vignette][(https://neon-biodiversity.github.io/neonEnvData/vignette.html))**
 
 ## Location of Data
 
