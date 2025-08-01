@@ -194,3 +194,96 @@ clean_zero_na_columns <- function(original_file) {
       
   return(df)
 }
+
+
+#' Insert XML Metadata into a GeoPackage File
+#'
+#' This function injects ISO 19115-style XML metadata into the `gpkg_metadata` and
+#' `gpkg_metadata_reference` tables of a GeoPackage (`.gpkg`) file. It's designed
+#' for bulk or automated metadata population across multiple GeoPackage datasets.
+#'
+#' @param gpkg_path Character. Full path to the GeoPackage file (.gpkg).
+#' @param xml_path Character. Full path to the XML metadata file to be embedded.
+#' @param file_id Integer. Unique identifier for the metadata entry in the GeoPackage. Default is `1`.
+#' @param table_name Character or `NULL`. Optional name of the table/layer that the metadata references.
+#' If `NULL`, metadata will be associated with the entire dataset.
+#'
+#' @details
+#' This function writes the provided XML content to the `gpkg_metadata` table and then
+#' creates a reference in `gpkg_metadata_reference`. It uses the standard MIME type
+#' `"text/xml"` and assumes conformance to the ISO 19115 metadata model.
+#'
+#' If the metadata ID already exists, it will be replaced (`INSERT OR REPLACE` logic).
+#'
+#' @return No return value. The function performs database operations as a side effect.
+#'
+#' @importFrom DBI dbConnect dbExecute dbDisconnect
+#' @importFrom RSQLite SQLite
+#' @importFrom glue glue
+#' @importFrom readr read_file
+#'
+#' @examples
+#' \dontrun{
+#' insert_metadata(
+#'   gpkg_path = "data/climate_regions.gpkg",
+#'   xml_path = "metadata/climate_regions.xml",
+#'   file_id = 1,
+#'   table_name = "regions_layer"
+#' )
+#' }
+#'
+#' @export
+insert_metadata <- function(gpkg_path, xml_path, file_id = 1, table_name = NULL) {
+  # Read XML metadata
+  xml_metadata <- read_file(xml_path)
+  
+  # Connect to GeoPackage
+  con <- dbConnect(RSQLite::SQLite(), gpkg_path)
+  
+  # Check and create gpkg_metadata table if missing
+  dbExecute(con, "
+  CREATE TABLE IF NOT EXISTS gpkg_metadata (
+    id INTEGER NOT NULL PRIMARY KEY,
+    md_scope TEXT NOT NULL DEFAULT 'dataset',
+    md_standard_uri TEXT NOT NULL,
+    mime_type TEXT NOT NULL DEFAULT 'text/xml',
+    metadata TEXT NOT NULL
+  );
+")
+  
+  # Check and create gpkg_metadata_reference table if missing
+  dbExecute(con, "
+  CREATE TABLE IF NOT EXISTS gpkg_metadata_reference (
+    reference_scope TEXT NOT NULL,
+    table_name TEXT,
+    column_name TEXT,
+    row_id_value INTEGER,
+    timestamp DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+    md_file_id INTEGER NOT NULL,
+    md_parent_id INTEGER,
+    CONSTRAINT crmr_mfi_fk FOREIGN KEY (md_file_id) REFERENCES gpkg_metadata(id)
+  );
+")
+  
+  
+  # Insert metadata into gpkg_metadata
+  dbExecute(con, glue("
+    INSERT OR REPLACE INTO gpkg_metadata
+      (id, md_scope, md_standard_uri, mime_type, metadata)
+    VALUES
+      ({file_id}, 'dataset', 'http://www.isotc211.org/2005/gmd', 'text/xml', ?)
+  "), params = list(xml_metadata))
+  
+  # Insert reference (table_name is optional)
+  ref_scope <- ifelse(is.null(table_name), "dataset", "table")
+  
+  dbExecute(con, glue("
+    INSERT OR REPLACE INTO gpkg_metadata_reference
+      (reference_scope, table_name, column_name, row_id_value, timestamp, md_file_id, md_parent_id)
+    VALUES
+      ('{ref_scope}', {ifelse(is.null(table_name), 'NULL', paste0(\"'\", table_name, \"'\"))}, NULL, NULL, CURRENT_TIMESTAMP, {file_id}, NULL)
+  "))
+  
+  dbDisconnect(con)
+}
+

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gmd:MD_Metadata 
+    xmlns:gmd="http://www.isotc211.org/2005/gmd"
+    xmlns:gco="http://www.isotc211.org/2005/gco"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.isotc211.org/2005/gmd http://schemas.opengis.net/iso/19139/20070417/gmd/gmd.xsd">
+
+  <gmd:fileIdentifier>
+    <gco:CharacterString>13</gco:CharacterString>
+  </gmd:fileIdentifier>
+
+  <gmd:language>
+    <gmd:LanguageCode codeListValue="eng">eng</gmd:LanguageCode>
+  </gmd:language>
+
+  <gmd:characterSet>
+    <gmd:MD_CharacterSetCode codeListValue="utf8">utf8</gmd:MD_CharacterSetCode>
+  </gmd:characterSet>
+
+  <gmd:identificationInfo>
+    <gmd:MD_DataIdentification>
+      
+      <gmd:citation>
+        <gmd:CI_Citation>
+          <gmd:title>
+            <gco:CharacterString>NEON tower site radii elev30m</gco:CharacterString>
+          </gmd:title>
+          <gmd:date>
+            <gmd:CI_Date>
+              <gmd:date>
+                <gco:Date>2025-07-16</gco:Date>
+              </gmd:date>
+              <gmd:dateType>
+                <gmd:CI_DateTypeCode codeListValue="creation">creation</gmd:CI_DateTypeCode>
+              </gmd:dateType>
+            </gmd:CI_Date>
+          </gmd:date>
+        </gmd:CI_Citation>
+      </gmd:citation>
+
+      <gmd:abstract>
+        <gco:CharacterString>Temperature, precipitation, and elevation are important environmental drivers of biodiversity. Understanding the roles these drivers play across multiple scales will improve the ability to predict biodiversity and how changes in environmental conditions are likely to impact it. However, accessing and using large, high resolution data sets is often challenging for ecologists not trained in supercomputing and big data analysis. To help overcome this barrier, we present a reproducible, open workflow and associated ready-to-use data set of climate and elevation geodiversity (surface variability) metrics across multiple spatial scales for National Ecological Observatory Network (NEON) sites across the United States. We derived these metrics from “Climatologies at high resolution for the earth’s land surface areas” (CHELSA) and NASA’s Shuttle Radar Topography Mission (SRTM). Spatial scales of the data include plot, site, and domain. We calculated metrics for both the original site and domain footprints as well as at equally sized buffers around NEON sites (15 km) and domains (100 km). This radius-based approach mitigates some bias induced by size and location differences among NEON sites and domains. The final data set contains over 20,400 values derived from 19 bioclimatic variables and high resolution elevation data calculated across 3 spatial extents and multiple spatial resolutions. These analysis-ready data, along with the associated open and reproducible R workflow used to generate them, will offer opportunities to examine the multiscalar effects of climate and elevation geodiversity on ecological processes. 
+</gco:CharacterString>
+      </gmd:abstract>
+
+      <gmd:descriptiveKeywords>
+        <gmd:MD_Keywords>
+          <gmd:keyword>
+            <gco:CharacterString>precipitation, temperature, elevation, geodiversity, National Ecological Observatory Network (NEON)</gco:CharacterString>
+          </gmd:keyword>
+        </gmd:MD_Keywords>
+      </gmd:descriptiveKeywords>
+
+      <gmd:resourceConstraints>
+        <gmd:MD_LegalConstraints>
+          <gmd:useConstraints>
+            <gmd:MD_RestrictionCode codeListValue="CC BY">CC BY</gmd:MD_RestrictionCode>
+          </gmd:useConstraints>
+        </gmd:MD_LegalConstraints>
+      </gmd:resourceConstraints>
+
+    </gmd:MD_DataIdentification>
+  </gmd:identificationInfo>
+</gmd:MD_Metadata>

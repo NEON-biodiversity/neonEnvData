@@ -1,13 +1,49 @@
 ---
 title: "Using the neonEnvData Workflow"
-author: "Kelly Kapsar"
+author: "By: Kelly Kapsar"
+date: "Last updated: 1 August 2025"
 output: 
   html_document:
     toc: true
+    toc_float: true       # This puts the TOC in a floating sidebar
+    number_sections: false
+    theme: cosmo          # Optional: use a clean Bootstrap theme
+    df_print: paged       # Optional: good for big tables
     toc_depth: 3
-    number_sections: true
     fig_align: "center"
 ---
+
+<style type="text/css">
+
+h1 {
+font-weight: bold;
+}
+blockquote {
+  font-size: inherit;
+  font-style: normal;
+}
+h1.title {
+  font-size: 38px;
+  color: Black;
+  text-align: center;
+}
+h4.author { /* Header 4 - and the author and data headers use this too  */
+    font-size: 18px;
+  color: Black;
+  text-align: center;
+}
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  color: Black;
+  text-align: center;
+}
+</style>
+
+
+<div style="text-align: center">
+  <img src="images/geodiv_banner.png" width="90%" alt="Geodiversity banner">
+</div>
+
 
 # Intended Audience
 
@@ -29,6 +65,7 @@ This vignette is designed to demonstrate the utility of the `neonEnvData` workfl
 # The Structure
 
 This project is stored in two parts:
+
 1. The code  
 2. The data
 
@@ -37,6 +74,11 @@ These parts can be stored in entirely separate locations so long as the `config.
 In this project, both the code and the data are stored in files labelled `L0`, `L1`, and `L2`. The scripts help to move the files to the next level up. For instance, code in the `L0` folder contains scripts to take data from `L0` (raw data) to `L1` (clean data), and the code in the `L1` folder contains scripts to move the `L1` data to `L2` (analysis ready).
 
 # The Workflow
+
+<div style="text-align: center">
+  <img src="images/neonEnvData-Workflow.png" width="70%" alt="Workflow Diagram">
+</div>
+
 
 ## Step 1: Download data
 
@@ -62,12 +104,18 @@ In this project, both the code and the data are stored in files labelled `L0`, `
   - NEON tower locations: Tower location data are not easily available for all Towers and were acquired directly from NEON personnel.
   - NEON site footprints: Acquired from “Terrestrial Field Site Boundaries”. 
   - NEON domain footprints: Acquired from “Domain Polygons”. 
-
+  
+<div style="text-align: center">
+  <img src="images/neon_logo.jfif" width="30%" style="margin: 0 1%;">
+  <img src="images/srtm_logo.png" width="20%" style="margin: 0 1%;">
+  <img src="images/CHELSA_logo.gif" width="30%" style="margin: 0 1%;">
+</div>
 
 ## Step 2: Specify parameters
 
 This workflow is designed to minimize the need to repeatedly specify input parameters through the use of a configuration file (`config.R`). User specified inputs include: 
 
+- Project Directory
 - Projection
 - Buffer distances
 - Elevation resolution
@@ -76,9 +124,16 @@ This workflow is designed to minimize the need to repeatedly specify input param
 - ID column in shapefile
 - Geodiversity metrics list
 
+> **Note:**  
+> Once you fill in the Project Directory file path in the `config.R` file, the code will ensure that all subdirectories are generated when the script is run by calling the “source” function in future scripts (i.e., in Step 3). Additionally, the `config.R` script will generate new folders named with the resolution in which the geodiversity metrics calculated. For instance, if the user wants to generate metrics for SRTM data at a 300m resolution, the script will produce the folders “elev_tif_300m”, “elev_srtm_300m”, and  “clim_elev_300m” with the data produced at the designated resolution.
+
 ## Step 3: Pre-process data
 
 Once all of the data are downloaded, we must unpackage and harmonize them so that they can be used together. Following the [Environmental Data Initiative’s processing levels]( https://edirepository.org/resources/designing-a-data-package), this step will take the data from L0 (raw data) to L1 (processed data). The scripts in the L0 folder are completely independent of each other and can be run in any order. This step involves spatial reprojections and column re-naming among other steps. We have broken this up into three scripts which are located in the `L0` folder:
+
+<div style="text-align: center">
+  <img src="images/EDI-logo.png" width="10%" alt="EDI Logo">
+</div>
 
 - `1-chelsa_crop_reproject.R`: Crops and reprojects the 19 CHELSA data layers 
 - `1-srtm_unzip_reproject.R`: Uses both the vector grid of spatial tiles and the folder of zipped tiles to unzip and reproject only necessary SRTM tile files. 
@@ -109,6 +164,10 @@ At this point you have completed all of the major data processing steps. You’v
 - `4-plot_metric_extremes_figure.R`: This script contains code used to generate the visualizations used in Figure 3 of the data paper.   
 - `4-generate_scale_figure.R`: This script contains code used to generate the visualizations used in Figure 1 of the data paper.  
 - `4-shiny_app_visualization_INPROGRESS.R`: This script contains preliminary code for a shiny app to visualize data outputs.   
+
+<div style="text-align: center">
+<img src="images/summit_density_example.png" style="max-width: 90%;">
+</div>
 
 # Accessing and Modifying the Code
 

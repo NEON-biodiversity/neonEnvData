@@ -20,12 +20,12 @@ library(ggplot2)
 source("./R/config.R")
 
 # Load data into memory
-site <- st_read(paste0(neon_dir, "/NEON_site_footprint.shp"), quiet = TRUE)
-plt <- st_read(paste0(neon_dir, "/NEON_mammal_plot_footprint.shp"), quiet=TRUE)
-plt_radii <- st_read(paste0(neon_dir, "/NEON_mammal_plot_radii.shp"), quiet = TRUE)
-site_radii <- st_read(paste0(neon_dir, "/NEON_mammal_site_radii.shp"), quiet = TRUE)
-dom_radii <- st_read(paste0(neon_dir, "/NEON_mammal_domain_radii.shp"), quiet = TRUE)
-dom <- st_read(paste0(neon_dir, "/NEON_domain_footprint.shp"), quiet = TRUE)
+site <- st_read(paste0(neon_dir, "/NEON_site_footprint.gpkg"), quiet = TRUE)
+plt <- st_read(paste0(neon_dir, "/NEON_mammal_plot_footprint.gpkg"), quiet=TRUE)
+plt_radii <- st_read(paste0(neon_dir, "/NEON_mammal_plot_radii.gpkg"), quiet = TRUE)
+site_radii <- st_read(paste0(neon_dir, "/NEON_mammal_site_radii.gpkg"), quiet = TRUE)
+dom_radii <- st_read(paste0(neon_dir, "/NEON_mammal_domain_radii.gpkg"), quiet = TRUE)
+dom <- st_read(paste0(neon_dir, "/NEON_domain_footprint.gpkg"), quiet = TRUE)
 
 
 # Function to make a square centered on a point
@@ -108,7 +108,7 @@ generate_scale_plots <- function(site_code, site, plt, plt_radii, site_radii, do
   # Second plot
   fig_site_footprint <- ggplot() +
     geom_sf(data = site_data, fill = "#44aea3") +
-    geom_sf(data = grid_site_foot, fill = "NA", color = "black", size = 0.3) +
+    # geom_sf(data = grid_site_foot, fill = "NA", color = "black", size = 0.3) +
     # geom_sf(data = grid_300_plot, fill = "#f7a680") +
     # geom_sf(data = plot_radii_data, shape = 21, fill = "#b8e6a5",size = 6) +
     geom_sf(data = st_centroid(plot_radii_data), color = "#b8e6a5",size = 6) +
@@ -129,9 +129,9 @@ generate_scale_plots <- function(site_code, site, plt, plt_radii, site_radii, do
   # Third plot
   fig_site_radii <- ggplot() +
     geom_sf(data = radii_data, fill = "#44aea3") +
-    geom_sf(data = grid_site_rad, fill = "NA", color = "black", size = 0.3) +
+    # geom_sf(data = grid_site_rad, fill = "NA", color = "black", size = 0.3) +
     geom_sf(data = site_data, fill = NA, color = "white", lwd=2) +
-    geom_sf(data = st_centroid(plot_radii_data), color = "#b8e6a5",size = 6) +
+    geom_sf(data = st_centroid(plot_radii_data), color = "#b8e6a5", size = 6) +
     theme_minimal() +
     theme(
       panel.grid.major = element_blank(),
