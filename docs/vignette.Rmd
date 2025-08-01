@@ -1,6 +1,6 @@
 ---
 title: "Using the neonEnvData Workflow"
-author: "By: Kelly Kapsar"
+author: "By: [Kelly Kapsar](https://kellykapsar.netlify.app)"
 date: "Last updated: 1 August 2025"
 output: 
   html_document:
