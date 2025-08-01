@@ -1,0 +1,184 @@
+---
+title: "Using the neonEnvData Workflow"
+author: "By: Kelly Kapsar"
+date: "Last updated: 1 August 2025"
+output: 
+  html_document:
+    toc: true
+    toc_float: true       # This puts the TOC in a floating sidebar
+    number_sections: false
+    theme: cosmo          # Optional: use a clean Bootstrap theme
+    df_print: paged       # Optional: good for big tables
+    toc_depth: 3
+    fig_align: "center"
+---
+
+<style type="text/css">
+
+h1 {
+font-weight: bold;
+}
+blockquote {
+  font-size: inherit;
+  font-style: normal;
+}
+h1.title {
+  font-size: 38px;
+  color: Black;
+  text-align: center;
+}
+h4.author { /* Header 4 - and the author and data headers use this too  */
+    font-size: 18px;
+  color: Black;
+  text-align: center;
+}
+h4.date { /* Header 4 - and the author and data headers use this too  */
+  font-size: 18px;
+  color: Black;
+  text-align: center;
+}
+</style>
+
+
+<div style="text-align: center">
+  <img src="images/geodiv_banner.png" width="90%" alt="Geodiversity banner">
+</div>
+
+
+# Intended Audience
+
+This vignette is designed for those who are familiar with R and spatial data formats (e.g., raster, vector), but are less familiar with the process of applying basic spatial analytics (e.g., intersections, summaries) to large data sets. Working with big data generates its own set of challenges and this workflow is designed to walk users through an example of how these data can be processed. You can test out the workflow using all or a portion of the data yourself (although if you use all the data, you’ll likely need a supercomputer) and/or you can adapt the workflow to work with other data sources. 
+
+# Background
+
+In our experience, ecologists often lack formal training in coding and big data analysis. While this is changing, we still find that many courses are taught in general terms with a lack of specific examples of how a scientific workflow actually works. Here, we provide an example how-to guide with step-by-step instructions for downloading and extracting climate and elevation data, calculating summary statistics and geodiversity metrics, visualizing the data, and putting them into an analysis-ready format. This vignette is a companion to our data paper entitled “Environmental data layers for National Ecological Observatory Network (NEON) analyses across scales” (INSERT LINK). 
+
+The workflow itself consists of a series of R scripts used to process the data, with an overarching configuration script designed to ensure reproducibility by standardizing file structure and allowing users to specify input configuration parameters (see step 2). 
+
+This vignette is designed to demonstrate the utility of the `neonEnvData` workflow for generating geodiversity metrics for climate and elevation data. We will walk through each step in the workflow and describe the steps taken to download, pre-process, extract values, and visualize the outputs. 
+
+
+
+> **Note on computing power:**  
+> This workflow makes use of a high performance computing cluster (HPCC). A key purpose of providing the ready-to-use `gpkg` files for this project was to eliminate the need for others to have to gain access to an HPCC and go through the sometimes tedious process of troubleshooting big data analyses. Depending on your use case, if your area of interest is small enough, you may be able to follow along on a personal laptop. However, larger analyses will likely necessitate supercomputing capacity. For this reason, we have also included the slurm submission scripts in the GitHub repository for this project so that users can gain an idea of the computing power necessary for processing the data at the spatial extents that we used. Note that computing power will be different depending on the spatial extent of the data you are using. 
+
+# The Structure
+
+This project is stored in two parts:
+
+1. The code  
+2. The data
+
+These parts can be stored in entirely separate locations so long as the `config.R` file (see step 2 below) is updated to include the location of the data. (In fact, for the sake of using github to keep track of code changes, it is probably better to store your code and data in separate files. If you don’t store the data separately, then you’ll have to include each data file type you don’t want git to upload in the .gitignore and that can get a bit tedious when dealing with several file types.) 
+
+In this project, both the code and the data are stored in files labelled `L0`, `L1`, and `L2`. The scripts help to move the files to the next level up. For instance, code in the `L0` folder contains scripts to take data from `L0` (raw data) to `L1` (clean data), and the code in the `L1` folder contains scripts to move the `L1` data to `L2` (analysis ready).
+
+# The Workflow
+
+<div style="text-align: center">
+  <img src="images/neonEnvData-Workflow.png" width="70%" alt="Workflow Diagram">
+</div>
+
+
+## Step 1: Download data
+
+- **Temperature and precipitation**  
+  - Source: [CHELSA Dataset](https://chelsa-climate.org/downloads/)  
+    - About: We used the 19 bioclimate variables (BCVs) from the Climatologies at high resolution for the earth’s land surface areas (CHELSA) data set. 
+    - Resolution: 30 arc seconds  
+    - Extent: Global  
+    - Size: 4.5 GB
+
+- **Elevation**  
+  - Source: [NASA EarthData Portal](https://search.earthdata.nasa.gov/search/granules?p=C2763266360-LPCLOUD&pg[0][v]=f&pg[0][gsk]=-start_date&q=srtm&tl=950702399.5!2!!)  
+    - About: o	We used elevation data from NASA’s Shuttle Radar Topography Mission  Global 1 arc second V003 (SRTM). This mission flew in 2000 and collected high resolution elevation data from approximately 80% of Earth’s surface (up to ~60 degrees N). To minimize file sizes, we downloaded data for only North America. However, this workflow will work with any spatial extent. The data are stored as 1 degree x 1 degree zipped .hgt files, called “tiles”. We have included the shell script (EarthDataDownload_SRTMGL1v003_20240819.sh) that we used to download these data. 
+    - Resolution: 1 arc second  
+    - Extent: N. America (but can be customized)  
+    - Size: 98 GB zipped  
+  - Tile Index: [Vector grid of SRTM tiles on Figshare](https://figshare.com/articles/dataset/Vector_grid_of_SRTM_1x1_degree_tiles/1332753?file=1944795)
+    - About: To increase processing speeds by minimizing time spent unzipping unnecessary files, we also used a shapefile of the Vector grid of SRTM 1x1 degree tiles produced by Carlos Grohmann
+
+- **Spatial locations of interest**  
+  - About: This section can be customized to your spatial location of interest. Here, we demonstrate our methods for using data from the National Ecological Observatory Network (NEON).	NEON stores their spatial data in a different location from their data repository. The spatial data used in this vignette were primarily acquired from NEON’s [“Spatial Data & Maps” site]( https://www.neonscience.org/data-samples/data/spatial-data-maps). If you’d like to explore NEON’s sampling locations, there is a great interactive map on [this site]( https://www.neonscience.org/field-sites/explore-field-sites) or we also recommend [Thorpe et al. 2016}(https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecs2.1627). 
+  - NEON small mammal traps: Acquired from “Terrestrial Observation System Sampling Locations” file download.  
+  - NEON tower locations: Tower location data are not easily available for all Towers and were acquired directly from NEON personnel.
+  - NEON site footprints: Acquired from “Terrestrial Field Site Boundaries”. 
+  - NEON domain footprints: Acquired from “Domain Polygons”. 
+  
+<div style="text-align: center">
+  <img src="images/neon_logo.jfif" width="30%" style="margin: 0 1%;">
+  <img src="images/srtm_logo.png" width="20%" style="margin: 0 1%;">
+  <img src="images/CHELSA_logo.gif" width="30%" style="margin: 0 1%;">
+</div>
+
+## Step 2: Specify parameters
+
+This workflow is designed to minimize the need to repeatedly specify input parameters through the use of a configuration file (`config.R`). User specified inputs include: 
+
+- Project Directory
+- Projection
+- Buffer distances
+- Elevation resolution
+- File paths
+- Spatial extent
+- ID column in shapefile
+- Geodiversity metrics list
+
+> **Note:**  
+> Once you fill in the Project Directory file path in the `config.R` file, the code will ensure that all subdirectories are generated when the script is run by calling the “source” function in future scripts (i.e., in Step 3). Additionally, the `config.R` script will generate new folders named with the resolution in which the geodiversity metrics calculated. For instance, if the user wants to generate metrics for SRTM data at a 300m resolution, the script will produce the folders “elev_tif_300m”, “elev_srtm_300m”, and  “clim_elev_300m” with the data produced at the designated resolution.
+
+## Step 3: Pre-process data
+
+Once all of the data are downloaded, we must unpackage and harmonize them so that they can be used together. Following the [Environmental Data Initiative’s processing levels]( https://edirepository.org/resources/designing-a-data-package), this step will take the data from L0 (raw data) to L1 (processed data). The scripts in the L0 folder are completely independent of each other and can be run in any order. This step involves spatial reprojections and column re-naming among other steps. We have broken this up into three scripts which are located in the `L0` folder:
+
+<div style="text-align: center">
+  <img src="images/EDI-logo.png" width="10%" alt="EDI Logo">
+</div>
+
+- `1-chelsa_crop_reproject.R`: Crops and reprojects the 19 CHELSA data layers 
+- `1-srtm_unzip_reproject.R`: Uses both the vector grid of spatial tiles and the folder of zipped tiles to unzip and reproject only necessary SRTM tile files. 
+- `1-generate_spatial_data.R`: Harmonizes column names, projections, and buffer sizes between all NEON spatial data layers to generate the “cookie cutters” for extracting environmental data in later steps (see Figure 1 in data paper for more detail on spatial extents). Note that this script will need to be substantially adjusted if you are not using the same locations for data extraction. 
+
+## Step 4: Extract climate metrics
+
+Now that we have both our cookie sheets (i.e., raster layers) and our cookie cutters (i.e., vector outlines of spatial areas of interest), it is time to cut out the cookies (i.e., extract the spatial raster data for the areas of interest). The scripts for this process are located in the ./R/L1 directory. Within this directory are three R scripts: 
+
+- `2-3-functions.R`: Contains pre-specified functions for intersecting vector and raster data, tailored functions for handling SRTM and CHELSA file structures, and functions for calculating geodiversity metrics from a list of specified inputs. Storing all of the functions here and “source”-ing them into the other scripts allows us to use the same function in both scripts without needing to copy code (and minimize the possibility of forgetting to update one copy of the function when we make changes to the other) and also reduces clutter in the main script, making it more clearly understandable.   
+- `2-chelsa_extract_polys.R`: This script iterates through each polygon in each vector dataframe and each of the CHELSA data layers. It calculates the mean value of each biovar and adds that on as a column to the vector dataframe. For biovars 01 and 12, the script also calculates the specified geodiversity metrics (from the list specified in the config.R file). Columns are labelled with the pattern “data source_metric”. For example, “srtm_sbi” contains the surface bearing index value for the SRTM elevation data, and “bio01_mean” contains the mean value of bio01 variable (annual mean temperature). The code also saves a cropped and masked raster of each extracted “cookie” for the purposes of data visualization (You can comment out this line if you don’t want to save the raster extractions). Note: This script contains a lot of loops, which are not the most efficient way to process long lists of data. If you have any suggestions for improving the script and how it runs, please feel free to fork, edit, and pull request!   
+- `3-srtm_extract_polys.R`: This script does essentially the same thing as script 2, but for the SRTM data. However, the process is different due to the fact that the data are much higher resolution (i.e., longer processing time). This script also contains code to resample the SRTM data to a lower resolution if desired (based on inputs in the config.R file). In addition to saving the intersected rasters as geoTIFF files, the code also generates virtual rasters, which are a lightweight (i.e., faster processing) way to work with high resolution big data files. Originally, we wanted to avoid using geoTIFFs all together for the extracted SRTM data, however for creating visualizations of the raster outputs, it is easier to have them. You can comment out the virtual raster and/or geoTIFF generation code lines (in the srtm_intersection function in 2-3-functions.R script) and it will not have an effect on the output data. Once rasters are cropped and masked, the geodiversity metrics are calculated for the elevation data and added as extra columns in addition to those generated by script 2.   
+
+> **Note:**  
+> The 2-chelsa_extract_polys.R script is designed to be run first with the output geopackage files from this script used as inputs to script 3. This creates a somewhat unnecessary/redundant set of geopackage files with just the climate data summaries (see Figure 2 L2 box in data paper). There is no specific reason why we extracted the CHELSA data first and then the SRTM, it could have been the other way around. We could have also just saved an rdata object and imported that into script 3. These are all tweaks that could be made to improve the workflow in the future, but for now…it works. 
+
+<div style="text-align: center">
+<img src="https://plaky.com/blog/wp-content/uploads/2023/08/Your-old-code.jpg" style="max-width: 40%;">
+</div>
+
+## Step 5: Clean it up and make sure it worked
+
+At this point you have completed all of the major data processing steps. You’ve got the data and it’s just a matter of cleaning it up and making sure it worked as intended. The `./R/L2` folder contains several scripts to assist with this process as well as creating some visualizations (if desired). Below I’ve described several of these scripts. However, it should be noted that these scripts are primarily intended for processing the NEON spatial data. So if you are using other spatial vector data for processing, you will likely have to adapt the code substantially. 
+
+- `4-functions.R`: As with the L1 folder, this script contains some functions to help with the data cleaning process.   
+- `4-generate_summary_report.R`:  This is the most important script in the `./R/L2` folder. It contains code to aggregate all of the geopackage files that you have generated (you’ll need to specify where these files are in the “dirs” object) and creates a summary dataframe with one row per unique variable/metric/geopackage file combination. Each row contains the minimum, median, and maximum values for the metric as well as the total count of NA values and the total count of all values (excluding NAs). After the dataframe has been generated, there is further code to create summary plots for each variable/metric combination. These products are intended to help users identify outlier values or unintended NA values.   
+- `4-clean_up_data.R`: This script is specific to the NEON data paper workflow and contains code to rename the output geopackage files to include the spatial resolution of the SRTM data and also to replace columns with all 0 values with NA for geodiv metrics that returned 0 when there was only one pixel to calculate (in reality it should be NA given that there’s no ability to calculate geodiversity from one value).   
+- `4-plot_metric_extremes_figure.R`: This script contains code used to generate the visualizations used in Figure 3 of the data paper.   
+- `4-generate_scale_figure.R`: This script contains code used to generate the visualizations used in Figure 1 of the data paper.  
+- `4-shiny_app_visualization_INPROGRESS.R`: This script contains preliminary code for a shiny app to visualize data outputs.   
+
+<div style="text-align: center">
+<img src="images/summit_density_example.png" style="max-width: 90%;">
+</div>
+
+# Accessing and Modifying the Code
+
+If you would like to run this analysis to either repeat what we’ve done or to try it out on your own data, the best practice is to “fork” this repository on GitHub. For those unfamiliar, forking the repository creates a copy of it in your repositories. You can change it all you want without affecting this repository. But if you would like to submit your changes to us for possible incorporation into our version of the repository you can do what’s called a pull request. GitHub has some great documentation on forks and pull requests that you can find [here](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo). 
+
+<div style="text-align: center">
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7VxQq-mRMxCy81Un7gMsDzNqTfho5jnmxEQ&s" style="max-width: 60%;">
+</div>
+
+# The End
+
+This has been an example of how to run spatial operations on big data to create analysis-ready summaries. If you have any questions, please feel free to reach out! 
+📧 Kelly.kapsar@gmail.com  
+📁 Pull requests welcome!
