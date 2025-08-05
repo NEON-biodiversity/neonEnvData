@@ -155,10 +155,6 @@ Now that we have both our cookie sheets (i.e., raster layers) and our cookie cut
 > **Note:**  
 > The 2-chelsa_extract_polys.R script is designed to be run first with the output geopackage files from this script used as inputs to script 3. This creates a somewhat unnecessary/redundant set of geopackage files with just the climate data summaries (see Figure 2 L2 box in data paper). There is no specific reason why we extracted the CHELSA data first and then the SRTM, it could have been the other way around. We could have also just saved an rdata object and imported that into script 3. These are all tweaks that could be made to improve the workflow in the future, but for now…it works. 
 
-<div style="text-align: center">
-<img src="https://plaky.com/blog/wp-content/uploads/2023/08/Your-old-code.jpg" style="max-width: 40%;">
-</div>
-
 ## Step 5: Clean it up and make sure it worked
 
 At this point you have completed all of the major data processing steps. You’ve got the data and it’s just a matter of cleaning it up and making sure it worked as intended. The `./R/L2` folder contains several scripts to assist with this process as well as creating some visualizations (if desired). Below I’ve described several of these scripts. However, it should be noted that these scripts are primarily intended for processing the NEON spatial data. So if you are using other spatial vector data for processing, you will likely have to adapt the code substantially. 
@@ -169,10 +165,6 @@ At this point you have completed all of the major data processing steps. You’v
 - `4-plot_metric_extremes_figure.R`: This script contains code used to generate the visualizations used in Figure 3 of the data paper.   
 - `4-generate_scale_figure.R`: This script contains code used to generate the visualizations used in Figure 1 of the data paper.  
 - `4-shiny_app_visualization_INPROGRESS.R`: This script contains preliminary code for a shiny app to visualize data outputs.   
-
-<div style="text-align: center">
-<img src="images/summit_density_example.png" style="max-width: 90%;">
-</div>
 
 # Accessing and Modifying the Code
 
