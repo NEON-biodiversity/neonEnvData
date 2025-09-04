@@ -20,12 +20,12 @@ library(ggplot2)
 source("./R/config.R")
 
 # Load data into memory
-site <- st_read(paste0(neon_dir, "/NEON_site_footprint.gpkg"), quiet = TRUE)
-plt <- st_read(paste0(neon_dir, "/NEON_mammal_plot_footprint.gpkg"), quiet=TRUE)
-plt_radii <- st_read(paste0(neon_dir, "/NEON_mammal_plot_radii.gpkg"), quiet = TRUE)
-site_radii <- st_read(paste0(neon_dir, "/NEON_mammal_site_radii.gpkg"), quiet = TRUE)
-dom_radii <- st_read(paste0(neon_dir, "/NEON_mammal_domain_radii.gpkg"), quiet = TRUE)
-dom <- st_read(paste0(neon_dir, "/NEON_domain_footprint.gpkg"), quiet = TRUE)
+site <- st_read(paste0(polygon_dir, "/NEON_site_footprint.gpkg"), quiet = TRUE)
+plt <- st_read(paste0(polygon_dir, "/NEON_mammal_plot_footprint.gpkg"), quiet=TRUE)
+plt_radii <- st_read(paste0(polygon_dir, "/NEON_mammal_plot_radii.gpkg"), quiet = TRUE)
+site_radii <- st_read(paste0(polygon_dir, "/NEON_mammal_site_radii.gpkg"), quiet = TRUE)
+dom_radii <- st_read(paste0(polygon_dir, "/NEON_mammal_domain_radii.gpkg"), quiet = TRUE)
+dom <- st_read(paste0(polygon_dir, "/NEON_domain_footprint.gpkg"), quiet = TRUE)
 
 
 # Function to make a square centered on a point
