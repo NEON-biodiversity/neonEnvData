@@ -84,8 +84,27 @@ In this project, both the code and the data are stored in files labelled `L0`, `
   <img src="images/neonEnvData-Workflow.png" width="70%" alt="Workflow Diagram">
 </div>
 
+## Step 1: Specify parameters and generate file structure
 
-## Step 1: Download data
+This workflow is designed to minimize the need to repeatedly specify input parameters through the use of a configuration file (`config.R`). User specified inputs include: 
+
+- Project Directory
+- Projection
+- Buffer distances
+- Elevation resolution
+- File paths
+- Spatial extent
+- ID column in shapefile
+- Geodiversity metrics list
+
+After you have specified your desired parameters, you will need to run the code in the `config.R` file in order to generate the file structure and appropriate folders for storing the downloaded raw data. 
+
+> **Note:**  
+> Once you fill in the Project Directory file path in the `config.R` file, the code will ensure that all subdirectories are generated when the script is run by calling the “source” function in future scripts (i.e., in Step 3). Additionally, the `config.R` script will generate new folders named with the resolution in which the geodiversity metrics calculated. For instance, if the user wants to generate metrics for SRTM data at a 300m resolution, the script will produce the folders “elev_tif_300m”, “elev_srtm_300m”, and  “clim_elev_300m” with the data produced at the designated resolution.
+
+## Step 2: Download data
+
+Download the following climate and elevation data sets and save them into the `L0/elev_srtm_gl1_v003/raw` and the `L0/climate_chelsa_1981-2009` directories, respectively. 
 
 - **Temperature and precipitation**  
   - Source: [CHELSA Dataset](https://chelsa-climate.org/downloads/)  
@@ -109,28 +128,13 @@ In this project, both the code and the data are stored in files labelled `L0`, `
   - NEON tower locations: Tower location data are not easily available for all Towers and were acquired directly from NEON personnel.
   - NEON site footprints: Acquired from “Terrestrial Field Site Boundaries”. 
   - NEON domain footprints: Acquired from “Domain Polygons”. 
+  - **If you are using your own spatial locations of interest:** Simply make sure the files are properly projected to match the projection specified in the `config.R` script, have an "id" column differentiating between names for unique rows, and are saved as a .gpkg files. Then load them into the `/L1/polygon_[projection code]` directory (e.g., `L1/polygon_EPSG5070`). 
   
 <div style="text-align: center">
   <img src="images/neon_logo.jfif" width="30%" style="margin: 0 1%;">
   <img src="images/srtm_logo.png" width="20%" style="margin: 0 1%;">
   <img src="images/CHELSA_logo.gif" width="30%" style="margin: 0 1%;">
 </div>
-
-## Step 2: Specify parameters
-
-This workflow is designed to minimize the need to repeatedly specify input parameters through the use of a configuration file (`config.R`). User specified inputs include: 
-
-- Project Directory
-- Projection
-- Buffer distances
-- Elevation resolution
-- File paths
-- Spatial extent
-- ID column in shapefile
-- Geodiversity metrics list
-
-> **Note:**  
-> Once you fill in the Project Directory file path in the `config.R` file, the code will ensure that all subdirectories are generated when the script is run by calling the “source” function in future scripts (i.e., in Step 3). Additionally, the `config.R` script will generate new folders named with the resolution in which the geodiversity metrics calculated. For instance, if the user wants to generate metrics for SRTM data at a 300m resolution, the script will produce the folders “elev_tif_300m”, “elev_srtm_300m”, and  “clim_elev_300m” with the data produced at the designated resolution.
 
 ## Step 3: Pre-process data
 

@@ -20,17 +20,17 @@ library(ggplot2)   # For plotting
 source("./R/config.R")
 
 # Load spatial data (e.g., NEON sites and radii polygons)
-site <- st_read(paste0(neon_dir,
+site <- st_read(paste0(polygon_dir,
   "/NEON_site_footprint.shp"),
   quiet = TRUE
 )
 
-site_radii <- st_read(paste0(neon_dir,
+site_radii <- st_read(paste0(polygon_dir,
   "/NEON_site_radii.shp"),
   quiet = TRUE
 )
 
-domain_radii <- st_read(paste0(neon_dir,
+domain_radii <- st_read(paste0(polygon_dir,
   "/NEON_domain_radii.shp"),
   quiet = TRUE
 )
