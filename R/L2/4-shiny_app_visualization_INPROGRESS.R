@@ -1,84 +1,84 @@
 
-t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_300m/NEON_mammal_site_radii.shp") %>% 
-  st_transform(4326) %>% 
-  st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_site_radii_srtm300.shp")
-
-t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_300m/NEON_mammal_domain_radii.shp")%>% 
-  st_transform(4326) %>% 
-  st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_domain_radii_srtm300.shp")
-
-t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_300m/NEON_domain_footprint.shp") %>% 
-  st_transform(4326) %>% 
-  st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_domain_footprint_srtm300.shp")
-
-t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_300m/NEON_site_footprint.shp") %>% 
-  st_transform(4326) %>% 
-  st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_site_footprint_srtm300.shp")
-
-t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_300m/NEON_tower_domain_radii.shp") %>% 
-  st_transform(4326) %>% 
-  st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_domain_radii_srtm300.shp")
-
-
-t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_300m/NEON_tower_site_radii.shp") %>% 
-  st_transform(4326) %>% 
-  st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_site_srtm300.shp")
-
-
-t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_30m/NEON_mammal_plot_radii.shp") %>% 
-  st_transform(4326) %>% 
-  st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_plot_radii_srtm30.shp")
-
-
-t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_30m/NEON_mammal_site_radii.shp") %>% 
-  st_transform(4326) %>% 
-  st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_site_radii_srtm30.shp")
-
-t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_30m/NEON_mammal_domain_radii.shp") %>% 
-  st_transform(4326) %>% 
-  st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_domain_radii_srtm30.shp")
-
-t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_30m/NEON_site_footprint.shp") %>% 
-  st_transform(4326) %>% 
-  st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_site_footrpint_srtm30.shp")
-
-t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_30m/NEON_tower_plot_radii.shp") %>% 
-  st_transform(4326) %>% 
-  st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_plot_radii_srtm30.shp")
-
-t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_30m/NEON_tower_site_radii.shp") %>% 
-  st_transform(4326) %>% 
-  st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_site_radii_srtm30.shp")
-
-t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_30m/NEON_tower_domain_radii.shp") %>% 
-  st_transform(4326) %>% 
-  st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_domain_radii_srtm30.shp")
-
-
-
 library(shiny)
 library(sf)
 library(leaflet)
 library(dplyr)
 library(viridis)
 
+
+# t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_300m/NEON_mammal_site_radii.gpkg") %>% 
+#   st_transform(4326) %>% 
+#   st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_site_radii_srtm300.gpkg")
+# 
+# t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_300m/NEON_mammal_domain_radii.gpkg")%>% 
+#   st_transform(4326) %>% 
+#   st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_domain_radii_srtm300.gpkg")
+# 
+# t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_300m/NEON_domain_footprint.gpkg") %>% 
+#   st_transform(4326) %>% 
+#   st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_domain_footprint_srtm300.gpkg")
+# 
+# t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_300m/NEON_site_footprint.gpkg") %>% 
+#   st_transform(4326) %>% 
+#   st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_site_footprint_srtm300.gpkg")
+# 
+# t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_300m/NEON_tower_domain_radii.gpkg") %>% 
+#   st_transform(4326) %>% 
+#   st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_domain_radii_srtm300.gpkg")
+# 
+# 
+# t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_300m/NEON_tower_site_radii.gpkg") %>% 
+#   st_transform(4326) %>% 
+#   st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_site_srtm300.gpkg")
+# 
+# 
+# t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_30m/NEON_mammal_plot_radii.gpkg") %>% 
+#   st_transform(4326) %>% 
+#   st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_plot_radii_srtm30.gpkg")
+# 
+# 
+# t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_30m/NEON_mammal_site_radii.gpkg") %>% 
+#   st_transform(4326) %>% 
+#   st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_site_radii_srtm30.gpkg")
+# 
+# t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_30m/NEON_mammal_domain_radii.gpkg") %>% 
+#   st_transform(4326) %>% 
+#   st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_domain_radii_srtm30.gpkg")
+# 
+# t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_30m/NEON_site_footprint.gpkg") %>% 
+#   st_transform(4326) %>% 
+#   st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_site_footrpint_srtm30.gpkg")
+# 
+# t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_30m/NEON_tower_plot_radii.gpkg") %>% 
+#   st_transform(4326) %>% 
+#   st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_plot_radii_srtm30.gpkg")
+# 
+# t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_30m/NEON_tower_site_radii.gpkg") %>% 
+#   st_transform(4326) %>% 
+#   st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_site_radii_srtm30.gpkg")
+# 
+# t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_30m/NEON_tower_domain_radii.gpkg") %>% 
+#   st_transform(4326) %>% 
+#   st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_domain_radii_srtm30.gpkg")
+
+
 # List of shapefiles
 shapefile_paths <- list(
-  "Mammal Site Radii" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_site_radii_srtm300.shp",
-  "Mammal Domain Radii" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_domain_radii_srtm300.shp",
-  "Domain Footprint" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_domain_footprint_srtm300.shp",
-  "Site Footprint" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_site_footprint_srtm300.shp",
-  "Tower Site Radii" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_site_radii_srtm300.shp",
-  "Tower Domain Radii" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_domain_radii_srtm300.shp",
+  "Mammal Site Radii" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_site_radii_srtm300.gpkg",
+  "Mammal Domain Radii" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_domain_radii_srtm300.gpkg",
+  "Domain Footprint" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_domain_footprint_srtm300.gpkg",
+  "Site Footprint" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_site_footprint_srtm300.gpkg",
+  "Tower Site Radii" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_site_radii_srtm300.gpkg",
+  "Tower Domain Radii" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_domain_radii_srtm300.gpkg",
   
   
-  "Mammal Plot Radii" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_plot_radii_srtm30.shp",
-  "Mammal Site Radii (Duplicate)" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_site_radii_srtm30.shp",
-  "Mammal Domain Radii (Duplicate)" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_domain_radii_srtm30.shp",
-  "Site Footprint (Duplicate)" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_site_footprint_srtm30.shp",
-  "Tower Plot Radii" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_plot_radii_srtm30.shp",
-  "Tower Site Radii (Duplicate)" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_site_radii_srtm30.shp",
-  "Tower Domain Radii (Duplicate)" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_domain_radii_srtm30.shp"
+  "Mammal Plot Radii" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_plot_radii_srtm30.gpkg",
+  "Mammal Site Radii (Duplicate)" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_site_radii_srtm30.gpkg",
+  "Mammal Domain Radii (Duplicate)" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_domain_radii_srtm30.gpkg",
+  "Site Footprint (Duplicate)" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_site_footprint_srtm30.gpkg",
+  "Tower Plot Radii" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_plot_radii_srtm30.gpkg",
+  "Tower Site Radii (Duplicate)" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_site_radii_srtm30.gpkg",
+  "Tower Domain Radii (Duplicate)" = "/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_tower_domain_radii_srtm30.gpkg"
 )
 
 # UI
