@@ -87,7 +87,7 @@ tower_plt <- st_buffer(tower, plt_buff_dist) %>%
 tower_site <- st_buffer(tower, site_buff_dist) %>% 
   st_write(paste0(polygon_dir, "/NEON_tower_site_radii.gpkg"), append=F)
 
-tower_domain <- st_buffer(tower, site_buff_dist) %>% 
+tower_domain <- st_buffer(tower, dom_buff_dist) %>% 
   st_write(paste0(polygon_dir, "/NEON_tower_domain_radii.gpkg"), append=F)
 
 
