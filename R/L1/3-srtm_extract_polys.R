@@ -37,50 +37,50 @@ spatial_poly_names <- grep(".gpkg", list.files(output_dir_clim), value = TRUE) %
 # -----------------------------------------------------------------------------
 # Run Processing Function
 # -----------------------------------------------------------------------------
-# process_polygons(srtm_tiles = srtm_tiles,
-#                  srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
-#                  spatial_poly = st_read(spatial_poly_paths[[1]]),
-#                  spatial_poly_name = spatial_poly_names[[1]],
-#                  id_col = ifelse(grepl("plot", spatial_poly_names[[1]]), "plotID",
-#                           ifelse(grepl("site", spatial_poly_names[[1]]), "siteID",
-#                           ifelse(grepl("domain_radii", spatial_poly_names[[1]]), "siteID",
-#                           ifelse(grepl("domain_footprint", spatial_poly_names[[1]]), "domainNumb", id_col)))),
-#                  metrics_list = metrics_list,
-#                  vrt_dir = elev_vrt,
-#                  tif_dir = elev_tif,
-#                  output_dir = output_dir_clim_elev,
-#                  elev_res = elev_res)
+process_polygons(srtm_tiles = srtm_tiles,
+                 srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
+                 spatial_poly = st_read(spatial_poly_paths[[6]]),
+                 spatial_poly_name = spatial_poly_names[[6]],
+                 id_col = ifelse(grepl("plot", spatial_poly_names[[6]]), "plotID",
+                          ifelse(grepl("site", spatial_poly_names[[6]]), "siteID",
+                          ifelse(grepl("domain_radii", spatial_poly_names[[6]]), "siteID",
+                          ifelse(grepl("domain_footprint", spatial_poly_names[[6]]), "domainNumb", id_col)))),
+                 metrics_list = metrics_list,
+                 vrt_dir = elev_vrt,
+                 tif_dir = elev_tif,
+                 output_dir = output_dir_clim_elev,
+                 elev_res = elev_res)
 
 
-# Apply the updated function to each file
-lapply(c(1:2, 4:5), function(i) {
-  process_polygons(srtm_tiles = srtm_tiles,
-                   srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
-                   spatial_poly = st_read(spatial_poly_paths[[i]]),
-                   spatial_poly_name = spatial_poly_names[[i]],
-                   id_col = ifelse(grepl("plot", spatial_poly_names[[i]]), "plotID",
-                             ifelse(grepl("site", spatial_poly_names[[i]]), "siteID",
-                             ifelse(grepl("domain_radii", spatial_poly_names[[i]]), "siteID",
-                             ifelse(grepl("domain_footprint", spatial_poly_names[[i]]), "domainNumb", NA)))),
-                   metrics_list = metrics_list,
-                   vrt_dir = elev_vrt,
-                   tif_dir = elev_tif,
-                   output_dir = output_dir_clim_elev,
-                   elev_res = elev_res)
-})
-
-lapply(c(6,8), function(i) {
-  process_polygons(srtm_tiles = srtm_tiles,
-                   srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
-                   spatial_poly = st_read(spatial_poly_paths[[i]]),
-                   spatial_poly_name = spatial_poly_names[[i]],
-                   id_col = "siteID",
-                   metrics_list = metrics_list,
-                   vrt_dir = elev_vrt,
-                   tif_dir = elev_tif,
-                   output_dir = output_dir_clim_elev,
-                   elev_res = elev_res)
-})
+# # Apply the updated function to each file
+# lapply(c(1:2, 4:5), function(i) {
+#   process_polygons(srtm_tiles = srtm_tiles,
+#                    srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
+#                    spatial_poly = st_read(spatial_poly_paths[[i]]),
+#                    spatial_poly_name = spatial_poly_names[[i]],
+#                    id_col = ifelse(grepl("plot", spatial_poly_names[[i]]), "plotID",
+#                              ifelse(grepl("site", spatial_poly_names[[i]]), "siteID",
+#                              ifelse(grepl("domain_radii", spatial_poly_names[[i]]), "siteID",
+#                              ifelse(grepl("domain_footprint", spatial_poly_names[[i]]), "domainNumb", NA)))),
+#                    metrics_list = metrics_list,
+#                    vrt_dir = elev_vrt,
+#                    tif_dir = elev_tif,
+#                    output_dir = output_dir_clim_elev,
+#                    elev_res = elev_res)
+# })
+# 
+# lapply(c(6,8), function(i) {
+#   process_polygons(srtm_tiles = srtm_tiles,
+#                    srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE) ,
+#                    spatial_poly = st_read(spatial_poly_paths[[i]]),
+#                    spatial_poly_name = spatial_poly_names[[i]],
+#                    id_col = "siteID",
+#                    metrics_list = metrics_list,
+#                    vrt_dir = elev_vrt,
+#                    tif_dir = elev_tif,
+#                    output_dir = output_dir_clim_elev,
+#                    elev_res = elev_res)
+# })
 
 ###
 # For testing

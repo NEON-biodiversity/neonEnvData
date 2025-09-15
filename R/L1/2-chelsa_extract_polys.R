@@ -20,7 +20,7 @@ source("./R/config.R")
 
 # Load shapefiles from the specified directory
 spatial_names <- grep(
-  ".shp", 
+  ".gpkg", 
   list.files(polygon_dir, full.names = TRUE), 
   value = TRUE
 )
