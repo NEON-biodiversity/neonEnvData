@@ -163,6 +163,13 @@ clean_zero_na_columns <- function(original_file) {
   # Read as sf
   df <- sf::st_read(original_file, stringsAsFactors = FALSE, quiet = TRUE)
   
+  if(any(str_detect(colnames(df), "domainNumb"))){
+    df <- df %>% rename(domainID = domainNumb)
+    if(any(str_detect(colnames(df), "domainName"))){
+      df <- df %>% dplyr::select(-domainName)
+    }
+  }
+  
   # Drop geometry to isolate attribute data
   attr_data <- sf::st_drop_geometry(df)
   
