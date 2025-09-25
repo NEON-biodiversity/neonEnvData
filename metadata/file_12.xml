@@ -28,7 +28,7 @@
           <gmd:date>
             <gmd:CI_Date>
               <gmd:date>
-                <gco:Date>2025-09-14</gco:Date>
+                <gco:Date>2025-09-25</gco:Date>
               </gmd:date>
               <gmd:dateType>
                 <gmd:CI_DateTypeCode codeListValue="creation">creation</gmd:CI_DateTypeCode>
