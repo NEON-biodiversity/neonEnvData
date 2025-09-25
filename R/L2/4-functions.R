@@ -6,7 +6,6 @@
 #' metadata based on the filename.
 #'
 #' @param file_path Character. Path to the shapefile (.shp).
-#' @param elev_res Numeric or character. Elevation resolution metadata to include in the summary.
 #'
 #' @return A tidy data frame with summary statistics and metadata.
 #' 
@@ -18,10 +17,13 @@
 #'
 #' @examples
 #' \dontrun{
-#' summarize_shapefile("data/shapes/NEON_plot_footprint.shp", elev_res = "10m")
+#' summarize_shapefile("data/shapes/NEON_plot_footprint.shp")
 #' }
-summarize_shapefile <- function(file_path, elev_res) {
+summarize_shapefile <- function(file_path) {
   message("Processing: ", file_path)
+  
+  elev_res <- ifelse(str_detect(file_path, "30m"), 30, 300)
+  
   shp <- st_read(file_path, quiet = TRUE)
   
   numeric_data <- shp %>% st_drop_geometry() %>% select(where(is.numeric))

@@ -20,9 +20,10 @@ library(stringr)
 library(ggplot2)
 
 # Directories for 30m and 300m resolution shapefiles
-dirs <- list(
-  "clim_elev_30m" = "/mnt/research/neon/neonEnvData/L2/clim_elev_30m/",
-  "clim_elev_300m" = "/mnt/research/neon/neonEnvData/L2/clim_elev_300m/"
+dir <- c(
+  # "clim_elev_30m" = "/mnt/research/neon/neonEnvData/L2/clim_elev_30m/",
+  # "clim_elev_300m" = "/mnt/research/neon/neonEnvData/L2/clim_elev_300m/"
+  "/mnt/research/neon/neonEnvData/L2/clean_gpkg_files"
 )
 
 # Load in functions
@@ -31,21 +32,20 @@ source("./R/L2/4-functions.R")
 # Combine all summaries
 all_summaries <- list()
 
-for (label in names(dirs)) {
-  dir_path <- dirs[[label]]
-  elev_res <- ifelse(str_detect(label, "30m"), 30, 300)
-  shapefiles <- list.files(dir_path, pattern = "\\.gpkg$", full.names = TRUE)
+# for (label in names(dirs)) {
+#   dir_path <- dirs[[label]]
+#   elev_res <- ifelse(str_detect(label, "30m"), 30, 300)
+  shapefiles <- list.files(dir, pattern = "\\.gpkg$", full.names = TRUE)
   
   for (shp_file in shapefiles) {
     # Temp code to count number of rows in each data set to confirm accuracy
     # t <- st_read(shp_file, quiet = T) 
     # print(paste0(shp_file, ": ", nrow(t), "rows."))
-    
-    print(paste0("ELEVATION RESOLUTION: ", elev_res))
-    summary <- summarize_shapefile(shp_file, elev_res)
+
+    summary <- summarize_shapefile(shp_file)
     all_summaries[[length(all_summaries) + 1]] <- summary
   }
-}
+# }
 
 # Bind all data frames and write to master CSV
 final_summary <- bind_rows(all_summaries)
