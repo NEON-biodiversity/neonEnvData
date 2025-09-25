@@ -85,9 +85,9 @@ process_polygons(srtm_tiles = srtm_tiles,
 ###
 # For testing
 # srtm_tile_files = list.files(elev_tile_tif, full.names = TRUE)
-# spatial_poly = st_read(spatial_poly_paths[[3]])
-# spatial_poly_name = spatial_poly_names[[3]]
-# id_col = "plotID"
+# spatial_poly = st_read(spatial_poly_paths[[6]])
+# spatial_poly_name = spatial_poly_names[[6]]
+# id_col = "siteID"
 #   # ifelse(grepl("plot", spatial_poly_name), "plotID",
 #   #        ifelse(grepl("site", spatial_poly_name), "siteID",
 #   #               ifelse(grepl("domain_radii", spatial_poly_name), "siteID",
