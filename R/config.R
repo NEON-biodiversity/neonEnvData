@@ -4,13 +4,13 @@
 # COLLABORATORS:    Lala Kounta
 # DATA INPUT:       NA
 # DATA OUTPUT:      File structure for neonEnvData project
-# DATE:             July 2025
+# DATE:             September 2025
 # OVERVIEW:         Script for generating file structure for project data and 
 #                   specifying parameters (e.g. projection, radii distances). 
 
 print(version)
 
-list.of.packages <- c("geodiv", "terra", "sf", "dplyr", "tidyr", "lwgeom", "ggspatial", "doParallel", "foreach", "stringr")
+list.of.packages <- c("geodiv", "terra", "sf", "dplyr", "tidyr", "lwgeom", "doParallel", "foreach", "stringr")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)) install.packages(new.packages, repos='http://cran.us.r-project.org')
 
@@ -21,7 +21,6 @@ library(sf)
 library(tidyr)
 library(dplyr)
 library(lwgeom)
-# library(ggspatial)
 library(doParallel) # For parallel processing
 library(foreach)   # For parallel iteration
 
@@ -41,7 +40,7 @@ plt_buff_dist = 100
 elev_res <- "30"
 
 ## Project Directory 
-proj_dir <- "/mnt/research/neon/neonEnvData/"  # Change to relative path
+proj_dir <- "PATH/TO/YOUR/PROJ/DIR/HERE"  # Change to relative path
 
 # Specify geographic extent of the analysis 
 # (so that not all data are loaded in -- saves memory)
