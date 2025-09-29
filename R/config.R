@@ -38,7 +38,7 @@ site_buff_dist = 15000
 plt_buff_dist = 100
 
 # Resolution for srtm data (if coarsened). Starting resolution = 30m 
-elev_res <- "300"
+elev_res <- "30"
 
 ## Project Directory 
 proj_dir <- "/mnt/research/neon/neonEnvData/"  # Change to relative path
@@ -62,7 +62,8 @@ extent_sf <- c(xmin = -180, xmax = -60, ymax = 90, ymin = 14) %>%
 
 # Shapefile ID column (unique value per row in each shapefile for which 
 # values are being calculated) 
-id_col <- NA 
+id_col <- NA
+# id_col <- "id" 
 
 # Geodiversity metrics to be extracted 
 metrics_list <- c("sq", "sdq", "sbi", "ssk", "sku", "std2", "sds")
@@ -91,13 +92,13 @@ elev_vrt <- paste0(proj_dir, "L1/elev_vrt")
 raw_clim_dir <- paste0(proj_dir, "L0/climate_chelsa_1981-2009")
 # L1
 clim_tif <- paste0(proj_dir, "L1/climate_", prj_name)
-clim_tif_neon <- paste0(proj_dir, "L1/climate_tif")
+clim_tif_polygon <- paste0(proj_dir, "L1/climate_tif")
 
 ## NEON
 # L0
-neon_raw <- paste0(proj_dir, "L0/neon_spatial")
+polygon_raw <- paste0(proj_dir, "L0/polygon_spatial")
 # L1
-neon_dir <- paste0(proj_dir, "L1/neon_", prj_name)
+polygon_dir <- paste0(proj_dir, "L1/polygon_", prj_name)
 
 ## Output Directories
 output_dir <- paste0(proj_dir, "L2")
@@ -135,9 +136,9 @@ setup_project_directories <- function(proj_dir_name) {
     elev_tif,
     raw_clim_dir,
     clim_tif,
-    clim_tif_neon,
-    neon_raw,
-    neon_dir,
+    clim_tif_polygon,
+    polygon_raw,
+    polygon_dir,
     output_dir, 
     output_dir_clim, 
     output_dir_clim_elev,

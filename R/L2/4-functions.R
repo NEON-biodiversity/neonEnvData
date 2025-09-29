@@ -6,7 +6,6 @@
 #' metadata based on the filename.
 #'
 #' @param file_path Character. Path to the shapefile (.shp).
-#' @param elev_res Numeric or character. Elevation resolution metadata to include in the summary.
 #'
 #' @return A tidy data frame with summary statistics and metadata.
 #' 
@@ -18,10 +17,13 @@
 #'
 #' @examples
 #' \dontrun{
-#' summarize_shapefile("data/shapes/NEON_plot_footprint.shp", elev_res = "10m")
+#' summarize_shapefile("data/shapes/NEON_plot_footprint.shp")
 #' }
-summarize_shapefile <- function(file_path, elev_res) {
+summarize_shapefile <- function(file_path) {
   message("Processing: ", file_path)
+  
+  elev_res <- ifelse(str_detect(file_path, "30m"), 30, 300)
+  
   shp <- st_read(file_path, quiet = TRUE)
   
   numeric_data <- shp %>% st_drop_geometry() %>% select(where(is.numeric))
@@ -162,6 +164,13 @@ clean_zero_na_columns <- function(original_file) {
   
   # Read as sf
   df <- sf::st_read(original_file, stringsAsFactors = FALSE, quiet = TRUE)
+  
+  if(any(str_detect(colnames(df), "domainNumb"))){
+    df <- df %>% rename(domainID = domainNumb)
+    if(any(str_detect(colnames(df), "domainName"))){
+      df <- df %>% dplyr::select(-domainName)
+    }
+  }
   
   # Drop geometry to isolate attribute data
   attr_data <- sf::st_drop_geometry(df)

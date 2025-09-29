@@ -13,15 +13,15 @@
 
 
 # Load configuration file
-# source("./R/L1/2-3-functions.R")
-# source("./R/config.R")
-source("./2-3-functions.R") # HPCC
-source("../config.R") #HPCC
+source("./R/L1/2-3-functions.R")
+source("./R/config.R")
+# source("./2-3-functions.R") # HPCC
+# source("../config.R") #HPCC
 
 # Load shapefiles from the specified directory
 spatial_names <- grep(
   ".gpkg", 
-  list.files(neon_dir, full.names = TRUE), 
+  list.files(polygon_dir, full.names = TRUE), 
   value = TRUE
 )
 
@@ -67,7 +67,7 @@ for (i in 1:length(spatial_polys)) {
       
       # Save output raster for later visualizations
       ras_name <- paste0(tools::file_path_sans_ext(basename(spatial_names[i])), "_", id_val, "_", var_name, ".tif")
-      terra::writeRaster(ras, file.path(clim_tif_neon, ras_name), overwrite=T)
+      terra::writeRaster(ras, file.path(clim_tif_polygon, ras_name), overwrite=T)
       
       # Calculate the mean value of the raster for the polygon
       val <- mean(terra::values(ras), na.rm = TRUE)

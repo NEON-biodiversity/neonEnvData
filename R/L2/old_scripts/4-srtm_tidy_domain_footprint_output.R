@@ -5,13 +5,13 @@ library(stringr)
 library(tidyr)
 
 # Directory containing the shapefiles
-shapefile_dir <- "/mnt/scratch/kapsarke/neonEnvData/L2/domain_footprint"
+polygon_dir <- "/mnt/scratch/kapsarke/neonEnvData/L2/domain_footprint"
 
 # Metrics of interest
 metrics <- c("sq", "sdq", "sbi", "ssk", "sku", "sfd", "stdi", "sds", "mean", "sd")
 
 # Get full list of shapefiles
-shapefiles <- list.files(shapefile_dir, pattern = "_elev\\.shp$", full.names = TRUE)
+shapefiles <- list.files(polygon_dir, pattern = "_elev\\.shp$", full.names = TRUE)
 
 # Function to extract info and read just the necessary columns
 read_metric_file <- function(file_path) {

@@ -24,18 +24,18 @@ The high-level workflow includes the following steps:
 4. **Data Integration**: Combine climate and geodiversity data for each spatial unit.
 5. **Visualization and Output**: Generate  plots and save processed datasets for further analysis.
 
-**[For a more detailed walthrough of the worlkflow, see the vignette](https://neon-biodiversity.github.io/neonEnvData/vignette.html)**
+**[For a more detailed, step-by-step walkthrough of the worlkflow, see the vignette](https://neon-biodiversity.github.io/neonEnvData/vignette.html)**
 
 ## Location of Data
 
 - **SRTM Data**: SRTM_gl1_v003 available from [NASA EarthData](https://search.earthdata.nasa.gov/)
-- UDPATE **CHELSA Data**:
+- **CHELSA Data**: [Climatologies at high resolution for the Earth's land surface areas (CHELSA)](https://chelsa-climate.org/)
 - **NEON Spatial Data**: NEON Domains, Terrestrial Sampling Boundaries, and Sites shapefiles downloaded from [NEON Spatial Data site](https://www.neonscience.org/data-samples/data/spatial-data-maps). 
 
 ## Spatiotemporal Extent and Resolution
 
 - **Spatial Extent**: Variable: NEON plots, sites and domains across North America.
-- **Spatial Resolution**: SRTM = ~30 m (1 arc second); CHELSA = ~1 km (30 arc seconds)
+- **Spatial Resolution**: SRTM = ~30 m (1 arc second); CHELSA = ~600m (30 arc seconds)
 - **Temporal Extent**: Data include static geophysical variables (e.g., elevation) and climate data spanning historical periods (1981-2009).
 - **Temporal Resolution**: Climate data processed as averages across years.
 
@@ -89,16 +89,6 @@ Scripts are stored follosing the [Environmental Data Initiative's L0 (raw data),
 - **Inputs**: NA (functions are sourced in other scripts)
 - **Outputs**: NA (functions are sourced in other scripts)
 
-### `2-srtm_extract_polys.R`
-
-- **Purpose**: Extract geodiversity metric values for NEON spatial data
-- **Inputs**: 
-  - SRTMGl3_v003 data processed in ./R/L0/1-srtm_unzip_reproject.R
-  - Shapefile of SRTM tiles
-  - NEON spatial data 
-- **Outputs**: 
-  - NEON spatial data frame with 1 column per geodiversity metric (saved as shapefile)
-
 ### `2-chelsa_extract_polys.R`
 
 - **Purpose**: Extract biovar values for NEON spatial data
@@ -107,15 +97,16 @@ Scripts are stored follosing the [Environmental Data Initiative's L0 (raw data),
   - NEON spatial data 
 - **Outputs**: 
   - NEON spatial data frame with 1 column per geodiversity metric (saved as shapefile)
- 
 
-### `3-plot_site_rasters.R`
+### `3-srtm_extract_polys.R`
 
-- **Purpose**: Visualizes elevation data for NEON sites by intersecting SRTM rasters with site polygons and generating elevation plots.
-- **Inputs**:
-  - UPDATE  NEON site polygons: `/mnt/scratch/plz-lab/geodiversity/spatial_data/polys_EPSG5070/NEON_sites.shp`
-  - UPDATE  Raster files: `/mnt/scratch/plz-lab/geodiversity/SRTM_gl1_v003/tiles_EPSG5070`
-- **Outputs**: PNG plots of site elevations, saved in `/mnt/scratch/plz-lab/geodiversity/output/figures/`.
+- **Purpose**: Extract geodiversity metric values for NEON spatial data
+- **Inputs**: 
+  - SRTMGl3_v003 data processed in ./R/L0/1-srtm_unzip_reproject.R
+  - Shapefile of SRTM tiles
+  - NEON spatial data 
+- **Outputs**: 
+  - NEON spatial data frame with 1 column per geodiversity metric (saved as shapefile)
 
 ## Contributors
 
