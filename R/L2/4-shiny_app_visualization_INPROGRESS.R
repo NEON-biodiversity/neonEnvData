@@ -1,4 +1,10 @@
 
+
+library(sf)
+library(dplyr)
+library(tidyr)
+library(viridis)
+
 t <- st_read("/mnt/research/neon/neonEnvData/L2/clim_elev_300m/NEON_mammal_site_radii.shp") %>% 
   st_transform(4326) %>% 
   st_write("/mnt/research/neon/neonEnvData/L2/clim_elev_4326/NEON_mammal_site_radii_srtm300.shp")
