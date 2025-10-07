@@ -22,17 +22,25 @@
 summarize_shapefile <- function(file_path) {
   message("Processing: ", file_path)
   
+  # Safe versions of summary functions
+  safe_min <- function(x) if (all(is.na(x))) NA else min(x, na.rm = TRUE)
+  safe_max <- function(x) if (all(is.na(x))) NA else max(x, na.rm = TRUE)
+  safe_median <- function(x) if (all(is.na(x))) NA else median(x, na.rm = TRUE)
+  
   elev_res <- ifelse(str_detect(file_path, "30m"), 30, 300)
   
   shp <- st_read(file_path, quiet = TRUE)
   
   numeric_data <- shp %>% st_drop_geometry() %>% select(where(is.numeric))
   
+  # Optional: remove columns with all NA values
+  # numeric_data <- numeric_data %>% select(where(~ !all(is.na(.))))
+  
   summary_stats <- numeric_data %>% 
     summarise(across(everything(), list(
-      min = ~min(.x, na.rm = TRUE),
-      median = ~median(.x, na.rm = TRUE),
-      max = ~max(.x, na.rm = TRUE),
+      min = ~safe_min(.x),
+      median = ~safe_median(.x),
+      max = ~safe_max(.x),
       na_count = ~sum(is.na(.x)), 
       zero_count = ~sum(.x == 0, na.rm = TRUE),
       total_count = ~length(which(!is.na(.x)))
@@ -77,7 +85,6 @@ summarize_shapefile <- function(file_path) {
   
   return(summary_tidy)
 }
-
 
 #' Tag and Copy a GPKG File Based on Source Folder
 #'

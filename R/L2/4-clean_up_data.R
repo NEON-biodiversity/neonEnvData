@@ -48,7 +48,15 @@ for (label in names(dirs)) {
   }
 }
 
+# NEED TO REMOVE INF/-INF DATA FROM CLIMATE GEODIV METRICS ON PLOT SCALE 
+temp <- st_read("/mnt/research/neon/neonEnvData/L2/clean_gpkg_files/NEON_tower_plot_radii_elev30m.gpkg") %>% 
+  dplyr::select(-bio01_sq, 
+                -bio01_sdq,
+                -bio01_sbi,
+                -bio01_ssk,
+                -bio01_sku)
 
+unique(temp$bio01_sbi)
 
 ################################################################################
 
