@@ -58,8 +58,8 @@ plt <- st_read(paste0(polygon_raw, "/All_NEON_TOS_Plot_Points_V11.shp"), quiet=T
   filter(subtype == "mammalGrid") %>% 
   st_transform(prj) %>%
   # Add in domain information for plots 
-  left_join(., st_drop_geometry(site %>% select(siteID, domainName, domainNumb)), by = c("siteID")) # %>%
-  # st_write(paste0(polygon_dir, "/NEON_mammal_plot_footptint.gpkg"), append=F)
+  left_join(., st_drop_geometry(site %>% select(siteID, domainName, domainNumb)), by = c("siteID"))  %>%
+  st_write(paste0(polygon_dir, "/NEON_mammal_plot_footprint.gpkg"), append=F)
 
 # Determine small mammal trapping presence at each site
 # site <- site %>% 
