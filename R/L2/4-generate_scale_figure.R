@@ -1,210 +1,375 @@
 # =============================================================================
-# TITLE:            Data Paper Figure 1 Code
+# TITLE:            Data Paper Figure 1b Code
 # PROJECT:          NEON Geodiversity Analysis
 # AUTHORS:          Kelly Kapsar, Pat Bills, Phoebe Zarnetske 
 # COLLABORATORS:    Lala Kounta
 # DATA INPUT:       .gpkg files from cleaned neon data 
 # DATA OUTPUT:      Png files of representative scales of extraction
-# DATE:             July 2025
+# DATE:             July 2025 (last updated 10 April 2026)
 # OVERVIEW:         Schematic diagram of spatial scale for data extraction
 # =============================================================================
 
 
+req <- c(
+  "sf", "ggplot2", "dplyr", "tigris", "ggspatial",
+  "units", "cowplot", "ggrepel", "grid"
+)
+ins <- req[!req %in% installed.packages()[, "Package"]]
+if (length(ins)) install.packages(ins, repos = "https://cloud.r-project.org")
 
-# Load necessary libraries
 library(sf)
-library(dplyr)
-library(tidyr)
 library(ggplot2)
+library(dplyr)
+library(tigris)
+library(ggspatial)
+library(units)
+library(cowplot)
+library(ggrepel)
+library(grid)
+
+options(tigris_use_cache = TRUE)
 
 source("./R/config.R")
 
-# Load data into memory
+# =========================================================
+# Load data
+# =========================================================
 site <- st_read(paste0(polygon_dir, "/NEON_site_footprint.gpkg"), quiet = TRUE)
-plt <- st_read(paste0(polygon_dir, "/NEON_mammal_plot_footprint.gpkg"), quiet=TRUE)
-plt_radii <- st_read(paste0(polygon_dir, "/NEON_mammal_plot_radii.gpkg"), quiet = TRUE)
-site_radii <- st_read(paste0(polygon_dir, "/NEON_mammal_site_radii.gpkg"), quiet = TRUE)
-dom_radii <- st_read(paste0(polygon_dir, "/NEON_mammal_domain_radii.gpkg"), quiet = TRUE)
+plt <- st_read(paste0(polygon_dir, "/NEON_mammal_plot_footprint.gpkg"), quiet = TRUE)
+plt_radii <- st_read(paste0(polygon_dir, "/NEON_tower_plot_radii.gpkg"), quiet = TRUE)
+site_radii <- st_read(paste0(polygon_dir, "/NEON_tower_site_radii.gpkg"), quiet = TRUE)
+dom_radii <- st_read(paste0(polygon_dir, "/NEON_tower_domain_radii.gpkg"), quiet = TRUE)
 dom <- st_read(paste0(polygon_dir, "/NEON_domain_footprint.gpkg"), quiet = TRUE)
 
+# =========================================================
+# CRS
+# =========================================================
+crs_conus <- 5070   # NAD83 / Conus Albers
+crs_ak    <- 3338   # Alaska Albers
+crs_hi    <- 3759   # Hawaii Albers Equal Area Conic
+crs_pr    <- 32161  # Puerto Rico StatePlane
 
-# Function to make a square centered on a point
-make_centered_square <- function(center, size) {
-  half_size <- size / 2
-  # Create square coordinates centered at (0,0)
-  square_coords <- matrix(c(
-    -half_size, -half_size,
-    half_size, -half_size,
-    half_size,  half_size,
-    -half_size,  half_size,
-    -half_size, -half_size
-  ), ncol = 2, byrow = TRUE)
-  
-  # Create polygon and shift it to center
-  square <- st_polygon(list(square_coords))
-  square_sfc <- st_sfc(square, crs = st_crs(center))
-  
-  # Translate by adding coordinates
-  center_coords <- st_coordinates(center)
-  square_translated <- square_sfc + center_coords
-  st_sf(geometry = square_translated, crs = st_crs(center))
+# =========================================================
+# State boundaries
+# =========================================================
+states <- tigris::states(cb = TRUE, year = 2023) |>
+  st_as_sf()
+
+states_conus <- states |>
+  filter(!NAME %in% c("Alaska", "Hawaii", "Puerto Rico"),
+         !STUSPS %in% c("VI", "AS", "MP", "GU")) |>
+  st_transform(crs_conus)
+
+states_ak <- states |>
+  filter(NAME == "Alaska") |>
+  st_transform(crs_ak)
+
+states_hi <- states |>
+  filter(NAME == "Hawaii") |>
+  st_transform(crs_hi)
+
+states_pr <- states |>
+  filter(NAME == "Puerto Rico") |>
+  st_transform(crs_pr)
+
+# =========================================================
+# Helpers
+# =========================================================
+expand_bbox <- function(x, frac = 0.05) {
+  bb <- st_bbox(x)
+  dx <- (bb$xmax - bb$xmin) * frac
+  dy <- (bb$ymax - bb$ymin) * frac
+  c(
+    xmin = bb$xmin - dx,
+    xmax = bb$xmax + dx,
+    ymin = bb$ymin - dy,
+    ymax = bb$ymax + dy
+  )
 }
 
-
-# Refactor function
-generate_scale_plots <- function(site_code, site, plt, plt_radii, site_radii, dom_radii, dom) {
-  # Subset data based on the input site_code
-  site_data <- site[site$siteID == site_code,]
-  traps_data <- plt[grep(site_code, plt$plotID),]
-  plot_radii_data <- plt_radii[plt_radii$siteID == site_code,]
-  
-  radii_data <- site_radii[site_radii$siteID == site_code,]
-  dom_radii_data <- dom_radii[dom_radii$siteID == site_code,]
-  dom_data <- dom[dom$domainNumb == site_data$domainNumb,]
-  
-  
-  
-  ######################## PLOT SCALE FIGURE   ######################## 
-  
-  # Create grid for background
-  # Pick a reference point (e.g., center of site)
-  center_point <- st_centroid(st_union(plot_radii_data[plot_radii_data$plotID == traps_data$plotID[1],]))
-  
-  # Create a single 30m and 300m grid cell at the center
-  grid_300_plot <- make_centered_square(center_point, 300)
-  grid_30_plot <- st_make_grid(grid_300_plot, cellsize=30, square=T)
-  
-
-  fig_plot <- ggplot() +
-    geom_sf(data = grid_300_plot, fill = "NA", color="black", lwd = 1) +
-    geom_sf(data = plot_radii_data[plot_radii_data$plotID == traps_data$plotID[1],], fill = "#b8e6a5") +
-    geom_sf(data = grid_30_plot, fill="NA", color = "black", size = 0.3) +
-    # geom_sf(data = traps_data[traps_data$plotID == traps_data$plotID[1], ], color = "black", size = 3) +
-    theme_minimal() +
-    theme(
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      axis.text = element_blank(),
-      axis.ticks = element_blank(),
-      axis.title = element_blank(),
-      plot.title = element_blank()
-    )
-  
-  ggsave(filename = paste0(figures,"/scale_figure/", site_code, "_plot.png"), plot = fig_plot, width = 8, height = 6, dpi = 300)
-  
-  ######################## SITE FOOTPRINT SCALE FIGURE   ######################## 
-  
-  # # Create grid for background
-  site_bounds <- st_bbox(radii_data)
-  grid <- st_make_grid(
-    st_as_sfc(site_bounds),
-    cellsize = 300,
-    square = TRUE
-  )
-  grid_sf <- st_sf(geometry = grid)
-  grid_site_foot <- st_intersection(grid_sf, site_data)
-  grid_site_rad <- st_intersection(grid_sf, radii_data)
-  
-  # Second plot
-  fig_site_footprint <- ggplot() +
-    geom_sf(data = site_data, fill = "#44aea3") +
-    # geom_sf(data = grid_site_foot, fill = "NA", color = "black", size = 0.3) +
-    # geom_sf(data = grid_300_plot, fill = "#f7a680") +
-    # geom_sf(data = plot_radii_data, shape = 21, fill = "#b8e6a5",size = 6) +
-    geom_sf(data = st_centroid(plot_radii_data), color = "#b8e6a5",size = 6) +
-    # geom_sf(data = grid_300_sf, fill = NA, color = "blue", size = 0.8, linetype = "solid") +
-    theme_minimal() +
-    theme(
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      axis.text = element_blank(),
-      axis.ticks = element_blank(),
-      axis.title = element_blank(),
-      plot.title = element_blank()
-    )
-  
-  ggsave(filename = paste0(figures,"/scale_figure/", site_code, "_site_footprint.png"), plot = fig_site_footprint, width = 8, height = 6, dpi = 300)
-  
-  ######################## SITE RADIUS SCALE FIGURE   ######################## 
-  # Third plot
-  fig_site_radii <- ggplot() +
-    geom_sf(data = radii_data, fill = "#44aea3") +
-    # geom_sf(data = grid_site_rad, fill = "NA", color = "black", size = 0.3) +
-    geom_sf(data = site_data, fill = NA, color = "white", lwd=2) +
-    geom_sf(data = st_centroid(plot_radii_data), color = "#b8e6a5", size = 6) +
-    theme_minimal() +
-    theme(
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      axis.text = element_blank(),
-      axis.ticks = element_blank(),
-      axis.title = element_blank(),
-      plot.title = element_blank()
-    )
-
-  ggsave(filename = paste0("./figures/", site_code, "_site_radius.png"), plot = fig_site_radii, width = 8, height = 6, dpi = 300)
-  
-  ######################## DOMAIN RADIUS SCALE FIGURE   ######################## 
-  
-  # Fourth plot (dom_radii)
-  buffer_extent <- st_buffer(dom_radii_data, dist = 100000)
-  
-  fig_dom_radii <- ggplot() +
-    geom_sf(data = dom_data, color = "black", alpha = 0.5) +
-    geom_sf(data = dom_radii_data, fill = "#05718b") +
-    geom_sf(data = radii_data, fill = "#44aea3", color = "black", size = 0.7) +
-    coord_sf(xlim = st_bbox(buffer_extent)[c("xmin", "xmax")],
-             ylim = st_bbox(buffer_extent)[c("ymin", "ymax")]) +
-    theme_minimal() +
-    theme(
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      axis.text = element_blank(),
-      axis.ticks = element_blank(),
-      axis.title = element_blank(),
-      plot.title = element_blank()
-    )
-  
-  # ggsave(filename = paste0("./figures/", site_code, "_dom_radius.png"), plot = fig_dom_radii, width = 8, height = 6, dpi = 300)
-  
-  ######################## DOMAIN FOOTPRINT SCALE FIGURE   ######################## 
-  
-  # Fifth plot (dom_footprint)
-  fig_dom_footprint <- ggplot() +
-    geom_sf(data = dom_data, fill = "#05718b") +
-    geom_sf(data = site_data, fill = "#44aea3", color = "#44aea3", size = 0.7, alpha = 0.5) +
-    theme_minimal() +
-    theme(
-      panel.grid.major = element_blank(),
-      panel.grid.minor = element_blank(),
-      axis.text = element_blank(),
-      axis.ticks = element_blank(),
-      axis.title = element_blank(),
-      plot.title = element_blank()
-    )
-  
-  # ggsave(filename = paste0("./figures/", site_code, "_dom_footprint.png"), plot = fig_dom_footprint, width = 8, height = 6, dpi = 300)
-
-  text_plot <- ggplot() + 
-    theme_void() +  # A blank theme
-    geom_text(aes(x = 0.5, y = 0.5, label = site_code), size = 10)
-  
-  # Now combine the plots
-  # Arrange the plots in a grid layout
-  combined_plot <- plot_grid(
-    plot_grid(text_plot, fig_plot, ncol = 2, rel_widths = c(1, 1)),  # First row
-    plot_grid(fig_site_footprint, fig_site_radii, ncol = 2),  # Second row
-    plot_grid(fig_dom_footprint, fig_dom_radii, ncol = 2),  # Third row
-    nrow = 3,
-    align = 'v'
-  )
-  
-  # ggsave(filename = paste0("./figures/", site_code, "_combined_plot.png"), plot = combined_plot, width = 6, height = 9, dpi = 300)
-
-    
+clip_to_region <- function(layer, region_poly) {
+  region_union <- st_union(region_poly) |> st_make_valid()
+  layer <- st_make_valid(layer)
+  clipped <- suppressWarnings(st_intersection(layer, region_union))
+  clipped <- clipped[!st_is_empty(clipped), ]
+  clipped
 }
 
-# Example usage:
-lapply(unique(site$siteID), function(x){
-  generate_scale_plots(x, site, plt, plt_radii, plt_circle_center, site_radii, site_circle_center, dom_radii, dom)
-})
+select_to_region <- function(layer, region_poly) {
+  region_union <- st_union(region_poly) |> st_make_valid()
+  layer <- st_make_valid(layer)
+  keep <- lengths(st_intersects(layer, region_union)) > 0
+  layer[keep, ]
+}
+
+crop_states_to_layer_bbox <- function(states_region, layer, frac = 0.10) {
+  bb <- st_bbox(layer)
+  dx <- (bb$xmax - bb$xmin) * frac
+  dy <- (bb$ymax - bb$ymin) * frac
+  
+  bb_sfc <- st_as_sfc(st_bbox(c(
+   bb$xmin - dx,
+   bb$xmax + dx,
+   bb$ymin - dy,
+   bb$ymax + dy
+  ), crs = st_crs(layer)))
+  
+  suppressWarnings(st_crop(states_region, bb_sfc))
+}
+
+prep_region <- function(site, dom, dom_radii, states_region, crs_region) {
+  site_r <- st_transform(site, crs_region)
+  dom_r <- st_transform(dom, crs_region)
+  dom_radii_r <- st_transform(dom_radii, crs_region)
+  
+  list(
+    site = select_to_region(site_r, states_region),
+    dom = clip_to_region(dom_r, states_region),
+    dom_radii = clip_to_region(dom_radii_r, states_region)
+  )
+}
+
+# =========================================================
+# Prepare region-specific layers
+# =========================================================
+conus <- prep_region(site, dom, dom_radii, states_conus, crs_conus)
+ak    <- prep_region(site, dom, dom_radii, states_ak, crs_ak)
+hi    <- prep_region(site, dom, dom_radii, states_hi, crs_hi)
+pr    <- prep_region(site, dom, dom_radii, states_pr, crs_pr)
+
+# Crop Hawaii state geometry to the NEON Hawaii domain extent
+# This removes the far outlying islands from TIGER
+if (nrow(hi$dom) > 0) {
+  states_hi <- crop_states_to_layer_bbox(states_hi, hi$dom, frac = 0.12)
+  # re-trim the data using the cropped Hawaii extent for cleaner inset plotting
+  hi$dom <- clip_to_region(hi$dom, states_hi)
+  hi$dom_radii <- clip_to_region(hi$dom_radii, states_hi)
+  hi$site <- select_to_region(hi$site, states_hi)
+}
+
+# Optional: tighten Puerto Rico a bit too
+if (nrow(pr$dom) > 0) {
+  states_pr <- crop_states_to_layer_bbox(states_pr, pr$dom, frac = 0.10)
+  pr$dom <- clip_to_region(pr$dom, states_pr)
+  pr$dom_radii <- clip_to_region(pr$dom_radii, states_pr)
+  pr$site <- select_to_region(pr$site, states_pr)
+}
+
+# =========================================================
+# Site label prep for CONUS
+# =========================================================
+# Use site centroids / point on surface for labeling
+site_pts_conus <- st_point_on_surface(conus$site)
+coords_conus <- st_coordinates(site_pts_conus)
+
+site_labels_conus <- site_pts_conus |>
+  st_drop_geometry() |>
+  mutate(
+    x = coords_conus[, 1],
+    y = coords_conus[, 2]
+  )
+
+# =========================================================
+# Theme
+# =========================================================
+map_theme <- theme_minimal(base_size = 11) +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    panel.border = element_rect(color = "gray60", fill = NA, linewidth = 0.5),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 10),
+    legend.position = "top",
+    legend.direction = "horizontal",
+    legend.box = "horizontal",
+    legend.justification = "center",
+    legend.background = element_rect(fill = alpha("white", 0.92), color = NA)
+  )
+
+# =========================================================
+# Main CONUS plot
+# =========================================================
+bb_conus <- expand_bbox(states_conus, frac = 0.03)
+
+p_conus <- ggplot() +
+  geom_sf(
+    data = states_conus,
+    aes(color = "State boundaries"),
+    fill = NA,
+    linewidth = 0.25,
+    show.legend = TRUE
+  ) +
+  geom_sf(
+    data = conus$dom,
+    aes(fill = "NEON domain footprint"),
+    color = "gray40",
+    linewidth = 0.25,
+    alpha = 0.42,
+    show.legend = TRUE
+  ) +
+  geom_sf(
+    data = conus$dom_radii,
+    aes(fill = "Domain radius"),
+    color = NA,
+    alpha = 0.22,
+    show.legend = TRUE
+  ) +
+  geom_sf(
+    data = conus$site,
+    aes(fill = "Site footprint"),
+    color = "black",
+    linewidth = 0.20,
+    alpha = 0.95,
+    show.legend = TRUE
+  ) +
+  geom_text_repel(
+    data = site_labels_conus,
+    aes(x = x, y = y, label = siteID),
+    size = 2.7,
+    family = "sans",
+    min.segment.length = 0,
+    segment.color = "gray25",
+    segment.size = 0.25,
+    box.padding = 0.20,
+    point.padding = 0.08,
+    force = 2.7,
+    force_pull = 0.5,
+    max.overlaps = Inf,
+    seed = 123
+  ) +
+  coord_sf(
+    xlim = c(bb_conus["xmin"], bb_conus["xmax"]),
+    ylim = c(bb_conus["ymin"], bb_conus["ymax"]),
+    expand = FALSE
+  ) +
+  scale_fill_manual(
+    breaks = c("NEON domain footprint", "Domain radius", "Site footprint"),
+    values = c(
+      "NEON domain footprint" = "#B8C9A6",
+      "Domain radius" = "#5B8DB8",
+      "Site footprint" = "#D95F02"
+    )
+  ) +
+  scale_color_manual(
+    breaks = c("State boundaries"),
+    values = c("State boundaries" = "gray85")
+  ) +
+  annotation_scale(
+    location = "bl",
+    width_hint = 0.14,
+    pad_x = unit(0.20, "in"),
+    pad_y = unit(0.20, "in"),
+    text_cex = 0.8,
+    line_width = 0.6
+  ) +
+  guides(
+    fill = guide_legend(
+      nrow = 1,
+      byrow = TRUE,
+      override.aes = list(
+        alpha = c(0.42, 0.22, 0.95),
+        color = c("gray40", NA, "black")
+      )
+    ),
+    color = guide_legend(
+      nrow = 1,
+      byrow = TRUE,
+      override.aes = list(fill = NA, linewidth = 0.5)
+    )
+  ) +
+  map_theme
+
+# =========================================================
+# Inset function
+# =========================================================
+make_inset_map <- function(states_region, dom_region, dom_radii_region, site_region, label) {
+  bb <- expand_bbox(states_region, frac = 0.03)
+  
+  ggplot() +
+    geom_sf(
+      data = states_region,
+      color = "gray85",
+      fill = NA,
+      linewidth = 0.22
+    ) +
+    geom_sf(
+      data = dom_region,
+      fill = "#B8C9A6",
+      color = "gray40",
+      linewidth = 0.18,
+      alpha = 0.42
+    ) +
+    geom_sf(
+      data = dom_radii_region,
+      fill = "#5B8DB8",
+      color = NA,
+      alpha = 0.22
+    ) +
+    geom_sf(
+      data = site_region,
+      fill = "#D95F02",
+      color = "black",
+      linewidth = 0.16,
+      alpha = 0.95
+    ) +
+    coord_sf(
+      xlim = c(bb["xmin"], bb["xmax"]),
+      ylim = c(bb["ymin"], bb["ymax"]),
+      expand = FALSE
+    ) +
+    annotate(
+      "text",
+      x = bb["xmin"] + 0.04 * (bb["xmax"] - bb["xmin"]),
+      y = bb["ymax"] - 0.08 * (bb["ymax"] - bb["ymin"]),
+      label = label,
+      hjust = 0,
+      size = 3.0,
+      fontface = "bold"
+    ) +
+    theme_void() +
+    theme(
+      panel.border = element_rect(color = "gray60", fill = NA, linewidth = 0.5),
+      plot.background = element_rect(fill = alpha("white", 0.96), color = NA)
+    )
+}
+
+p_ak <- make_inset_map(states_ak, ak$dom, ak$dom_radii, ak$site, "AK")
+p_hi <- make_inset_map(states_hi, hi$dom, hi$dom_radii, hi$site, "HI")
+p_pr <- make_inset_map(states_pr, pr$dom, pr$dom_radii, pr$site, "PR")
+
+# =========================================================
+# Assemble final figure
+# Right-side vertical column of inset boxes
+# =========================================================
+final_map <- ggdraw() +
+  draw_plot(p_conus, x = 0, y = 0, width = 1, height = 1) +
+  draw_plot(p_ak, x = 0.79, y = 0.08, width = 0.18, height = 0.22) +
+  draw_plot(p_hi, x = 0.79, y = 0.32, width = 0.18, height = 0.15) +
+  draw_plot(p_pr, x = 0.79, y = 0.50, width = 0.18, height = 0.12)
+
+final_map
+
+# =========================================================
+# Save
+# =========================================================
+ggsave(
+  filename = file.path("NEON_map_final.png"),
+  plot = final_map,
+  width = 15,
+  height = 9,
+  units = "in",
+  dpi = 600,
+  bg = "white"
+)
+
+ggsave(
+  filename = file.path("NEON_map_final.pdf"),
+  plot = final_map,
+  width = 15,
+  height = 9,
+  units = "in",
+  bg = "white"
+)

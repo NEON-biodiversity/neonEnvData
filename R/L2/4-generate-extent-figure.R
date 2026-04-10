@@ -9,10 +9,9 @@
 # OVERVIEW:         Schematic diagram of spatial scale for data extraction
 # =============================================================================
 
-
 req <- c(
   "sf", "ggplot2", "dplyr", "tigris", "ggspatial",
-  "units", "ggrepel", "grid"
+  "ggrepel", "grid"
 )
 ins <- req[!req %in% installed.packages()[, "Package"]]
 if (length(ins)) install.packages(ins, repos = "https://cloud.r-project.org")
@@ -22,7 +21,6 @@ library(ggplot2)
 library(dplyr)
 library(tigris)
 library(ggspatial)
-library(units)
 library(ggrepel)
 library(grid)
 
@@ -34,52 +32,33 @@ source("./R/config.R")
 # Helpers: text sizing
 # =========================================================
 pt_to_mm <- function(pt) pt * 25.4 / 72.27
-
-# annotation_scale() uses text_cex, which is a multiplier rather than pt.
-# Approximate default text size is ~8.8 pt, so convert target pt to cex.
 pt_to_cex_for_scalebar <- function(pt, base_pt = 8.8) pt / base_pt
 
 # ---------------------------------------------------------
 # Final output-specific text targets
 # ---------------------------------------------------------
-# CONUS final output target: 6" x 4"
-conus_base_pt        <- 10.5
-conus_label_pt       <- 9.5
-conus_scalebar_pt    <- 9.5
-conus_region_pt      <- 10.5
+conus_base_pt      <- 10.5
+conus_label_pt     <- 9.5
+conus_scalebar_pt  <- 9.5
 
-# Insets final output target: 2" x 3"
-inset_base_pt        <- 8
-inset_label_pt       <- 9
-inset_scalebar_pt    <- 8
-inset_region_pt      <- 8.5
+inset_base_pt      <- 8
+inset_scalebar_pt  <- 8
+inset_region_pt    <- 8.5
 
-# Converted units for geoms using mm text size
-conus_label_mm       <- pt_to_mm(conus_label_pt)
-conus_region_mm      <- pt_to_mm(conus_region_pt)
+conus_label_mm     <- pt_to_mm(conus_label_pt)
+inset_region_mm    <- pt_to_mm(inset_region_pt)
 
-inset_label_mm       <- pt_to_mm(inset_label_pt)
-inset_region_mm      <- pt_to_mm(inset_region_pt)
-
-# Converted units for scale bar
-conus_scalebar_cex   <- pt_to_cex_for_scalebar(conus_scalebar_pt)
-inset_scalebar_cex   <- pt_to_cex_for_scalebar(inset_scalebar_pt)
+conus_scalebar_cex <- pt_to_cex_for_scalebar(conus_scalebar_pt)
+inset_scalebar_cex <- pt_to_cex_for_scalebar(inset_scalebar_pt)
 
 # =========================================================
 # Load data
 # =========================================================
 site <- st_read(paste0(polygon_dir, "/NEON_site_footprint.gpkg"), quiet = TRUE)
-plt <- st_read(paste0(polygon_dir, "/NEON_mammal_plot_footprint.gpkg"), quiet = TRUE)
-plt_radii <- st_read(paste0(polygon_dir, "/NEON_tower_plot_radii.gpkg"), quiet = TRUE)
-site_radii <- st_read(paste0(polygon_dir, "/NEON_tower_site_radii.gpkg"), quiet = TRUE)
 dom_radii <- st_read(paste0(polygon_dir, "/NEON_tower_domain_radii.gpkg"), quiet = TRUE)
 dom <- st_read(paste0(polygon_dir, "/NEON_domain_footprint.gpkg"), quiet = TRUE)
 
-# Make geometries valid up front
 site <- st_make_valid(site)
-plt <- st_make_valid(plt)
-plt_radii <- st_make_valid(plt_radii)
-site_radii <- st_make_valid(site_radii)
 dom_radii <- st_make_valid(dom_radii)
 dom <- st_make_valid(dom)
 
@@ -122,23 +101,6 @@ states_pr <- states |>
 # =========================================================
 # Geometry helpers
 # =========================================================
-expand_bbox_asym <- function(x,
-                             pad_left = 0.05,
-                             pad_right = 0.05,
-                             pad_bottom = 0.05,
-                             pad_top = 0.05) {
-  bb <- st_bbox(x)
-  dx <- bb$xmax - bb$xmin
-  dy <- bb$ymax - bb$ymin
-  
-  c(
-    bb$xmin - dx * pad_left,
-    bb$xmax + dx * pad_right,
-    bb$ymin - dy * pad_bottom,
-    bb$ymax + dy * pad_top
-  )
-}
-
 is_valid_sf <- function(x) {
   if (is.null(x) || nrow(x) == 0) return(FALSE)
   
@@ -153,63 +115,149 @@ is_valid_sf <- function(x) {
   all(is.finite(unname(bb)))
 }
 
-clip_to_region <- function(layer, region_poly) {
+select_by_anchor_point <- function(layer, region_poly) {
   if (is.null(layer) || nrow(layer) == 0) return(layer)
   
-  region_union <- st_union(region_poly) |> st_make_valid()
   layer <- st_make_valid(layer)
+  layer <- layer[!st_is_empty(layer), ]
+  if (nrow(layer) == 0) return(layer)
   
-  clipped <- suppressWarnings(st_intersection(layer, region_union))
-  clipped <- clipped[!st_is_empty(clipped), ]
+  region_union <- st_union(region_poly) |> st_make_valid()
+  anchors <- suppressWarnings(st_point_on_surface(layer))
   
-  clipped
+  keep <- lengths(st_intersects(anchors, region_union)) > 0
+  layer[keep, ]
 }
 
-select_to_region <- function(layer, region_poly) {
+select_intersecting <- function(layer, region_poly) {
   if (is.null(layer) || nrow(layer) == 0) return(layer)
   
-  region_union <- st_union(region_poly) |> st_make_valid()
   layer <- st_make_valid(layer)
+  layer <- layer[!st_is_empty(layer), ]
+  if (nrow(layer) == 0) return(layer)
   
+  region_union <- st_union(region_poly) |> st_make_valid()
   keep <- lengths(st_intersects(layer, region_union)) > 0
   layer[keep, ]
 }
 
-crop_states_to_layer_bbox <- function(states_region, layer, frac = 0.10) {
-  if (is.null(layer) || nrow(layer) == 0) return(states_region)
+expand_bbox_asym_from_bbox <- function(bb,
+                                       pad_left = 0.05,
+                                       pad_right = 0.05,
+                                       pad_bottom = 0.05,
+                                       pad_top = 0.05) {
+  dx <- bb["xmax"] - bb["xmin"]
+  dy <- bb["ymax"] - bb["ymin"]
+  
+  c(
+    bb["xmin"] - dx * pad_left,
+    bb["xmax"] + dx * pad_right,
+    bb["ymin"] - dy * pad_bottom,
+    bb["ymax"] + dy * pad_top
+  )
+}
+
+combine_bbox_layers <- function(...) {
+  layers <- list(...)
+  layers <- Filter(function(x) inherits(x, "sf") && !is.null(x) && nrow(x) > 0, layers)
+  
+  if (length(layers) == 0) {
+    stop("combine_bbox_layers(): no non-empty sf layers supplied")
+  }
+  
+  bbs <- lapply(layers, st_bbox)
+  
+  xmin <- min(vapply(bbs, function(bb) unname(bb["xmin"]), numeric(1)), na.rm = TRUE)
+  xmax <- max(vapply(bbs, function(bb) unname(bb["xmax"]), numeric(1)), na.rm = TRUE)
+  ymin <- min(vapply(bbs, function(bb) unname(bb["ymin"]), numeric(1)), na.rm = TRUE)
+  ymax <- max(vapply(bbs, function(bb) unname(bb["ymax"]), numeric(1)), na.rm = TRUE)
+  
+  st_bbox(
+    c(
+      xmin = xmin,
+      ymin = ymin,
+      xmax = xmax,
+      ymax = ymax
+    ),
+    crs = st_crs(layers[[1]])
+  )
+}
+
+bbox_to_sfc <- function(bb, crs_obj) {
+  bb_obj <- structure(
+    c(
+      unname(bb["xmin"]),
+      unname(bb["ymin"]),
+      unname(bb["xmax"]),
+      unname(bb["ymax"])
+    ),
+    names = c("xmin", "ymin", "xmax", "ymax"),
+    class = "bbox"
+  )
+  attr(bb_obj, "crs") <- crs_obj
+  
+  st_as_sfc(bb_obj)
+}
+
+clip_to_bbox <- function(layer, bb) {
+  if (is.null(layer) || nrow(layer) == 0) return(layer)
   
   layer <- st_make_valid(layer)
   layer <- layer[!st_is_empty(layer), ]
+  if (nrow(layer) == 0) return(layer)
   
-  if (nrow(layer) == 0) return(states_region)
+  bb_poly <- bbox_to_sfc(bb, st_crs(layer))
   
-  bb <- tryCatch(st_bbox(layer), error = function(e) NULL)
-  if (is.null(bb) || any(!is.finite(unname(bb)))) {
-    return(states_region)
-  }
+  out <- suppressWarnings(st_intersection(layer, bb_poly))
+  out <- out[!st_is_empty(out), ]
   
-  dx <- bb["xmax"] - bb["xmin"] * frac
-  dy <- bb["ymax"] - bb["ymin"] * frac
-  
-  bb_sfc <- st_as_sfc(st_bbox(c(
-    bb["xmin"] - dx,
-    bb["xmax"] + dx,
-    bb["ymin"] - dy,
-    bb["ymax"] + dy
-  ), crs = st_crs(layer)))
-  
-  suppressWarnings(st_crop(states_region, bb_sfc))
+  out
 }
 
-prep_region <- function(site, dom, dom_radii, states_region, crs_region) {
+make_state_subregion <- function(states_region, xmin, xmax, ymin, ymax) {
+  region_ll <- st_transform(states_region, 4326) |>
+    st_make_valid()
+  
+  bb <- structure(
+    c(xmin, ymin, xmax, ymax),
+    names = c("xmin", "ymin", "xmax", "ymax"),
+    class = "bbox"
+  )
+  attr(bb, "crs") <- st_crs(region_ll)
+  
+  clip_box <- st_as_sfc(bb)
+  
+  out <- suppressWarnings(st_intersection(region_ll, clip_box))
+  out <- out[!st_is_empty(out), ]
+  
+  out |>
+    st_make_valid() |>
+    st_transform(st_crs(states_region))
+}
+
+prep_region_anchor <- function(site, dom, dom_radii, region_anchor, crs_region) {
   site_r <- st_transform(site, crs_region)
   dom_r <- st_transform(dom, crs_region)
   dom_radii_r <- st_transform(dom_radii, crs_region)
   
   list(
-    site = select_to_region(site_r, states_region),
-    dom = clip_to_region(dom_r, states_region),
-    dom_radii = clip_to_region(dom_radii_r, states_region)
+    site = select_by_anchor_point(site_r, region_anchor),
+    dom = select_intersecting(dom_r, region_anchor),
+    dom_radii = select_intersecting(dom_radii_r, region_anchor)
+  )
+}
+
+prep_region_windowed <- function(site, dom, dom_radii, region_anchor, search_bb, crs_region) {
+  site_r <- st_transform(site, crs_region)
+  dom_r <- st_transform(dom, crs_region)
+  dom_radii_r <- st_transform(dom_radii, crs_region)
+  
+  search_poly <- bbox_to_sfc(search_bb, st_crs(region_anchor))
+  
+  list(
+    site = select_by_anchor_point(site_r, region_anchor),
+    dom = select_intersecting(dom_r, search_poly),
+    dom_radii = select_intersecting(dom_radii_r, search_poly)
   )
 }
 
@@ -235,9 +283,7 @@ prep_label_points <- function(site_layer, label_col = "siteID") {
       x = xy[, 1],
       y = xy[, 2]
     ) |>
-    mutate(
-      label = trimws(label)
-    ) |>
+    mutate(label = trimws(label)) |>
     filter(
       !is.na(label),
       nzchar(label),
@@ -277,8 +323,6 @@ add_repel_labels <- function(p, label_data, size = 4,
     , drop = FALSE
   ]
   
-  rownames(label_data) <- NULL
-  
   if (nrow(label_data) == 0) {
     return(p)
   }
@@ -310,36 +354,57 @@ add_repel_labels <- function(p, label_data, size = 4,
 }
 
 # =========================================================
+# Custom regional anchors / backgrounds
+# =========================================================
+# Alaska mainland only: exclude Aleutians + southeast panhandle
+states_ak_mainland <- make_state_subregion(
+  states_ak,
+  xmin = -170,
+  xmax = -141,
+  ymin = 55,
+  ymax = 72
+)
+
+# Hawaii main inhabited islands only
+states_hi_main <- make_state_subregion(
+  states_hi,
+  xmin = -160.7,
+  xmax = -154.5,
+  ymin = 18.8,
+  ymax = 22.6
+)
+
+# Puerto Rico full island only
+states_pr_main <- states_pr
+
+# =========================================================
 # Prepare region-specific layers
 # =========================================================
-conus <- prep_region(site, dom, dom_radii, states_conus, crs_conus)
-ak    <- prep_region(site, dom, dom_radii, states_ak, crs_ak)
-hi    <- prep_region(site, dom, dom_radii, states_hi, crs_hi)
-pr    <- prep_region(site, dom, dom_radii, states_pr, crs_pr)
+conus <- prep_region_anchor(site, dom, dom_radii, states_conus, crs_conus)
+ak    <- prep_region_anchor(site, dom, dom_radii, states_ak_mainland, crs_ak)
+hi    <- prep_region_anchor(site, dom, dom_radii, states_hi_main, crs_hi)
 
-# Crop Hawaii state geometry to NEON Hawaii domain extent
-if (is_valid_sf(hi$dom)) {
-  states_hi <- crop_states_to_layer_bbox(states_hi, hi$dom, frac = 0.15)
-  hi$dom <- clip_to_region(hi$dom, states_hi)
-  hi$dom_radii <- clip_to_region(hi$dom_radii, states_hi)
-  hi$site <- select_to_region(hi$site, states_hi)
-}
+# Puerto Rico uses a PR-focused search window so shared PR/Florida geometry
+# is captured near PR, then clipped to the PR map extent later.
+pr_search_bb <- expand_bbox_asym_from_bbox(
+  st_bbox(states_pr_main),
+  pad_left = 1.10,
+  pad_right = 1.10,
+  pad_bottom = 1.10,
+  pad_top = 1.10
+)
 
-# Tighten Puerto Rico to NEON domain extent
-if (is_valid_sf(pr$dom)) {
-  states_pr <- crop_states_to_layer_bbox(states_pr, pr$dom, frac = 0.15)
-  pr$dom <- clip_to_region(pr$dom, states_pr)
-  pr$dom_radii <- clip_to_region(pr$dom_radii, states_pr)
-  pr$site <- select_to_region(pr$site, states_pr)
-}
+pr <- prep_region_windowed(
+  site, dom, dom_radii,
+  region_anchor = states_pr_main,
+  search_bb = pr_search_bb,
+  crs_region = crs_pr
+)
 
 # =========================================================
 # Label data
 # =========================================================
 site_labels_conus <- prep_label_points(conus$site)
-site_labels_ak    <- prep_label_points(ak$site)
-site_labels_hi    <- prep_label_points(hi$site)
-site_labels_pr    <- prep_label_points(pr$site)
 
 # =========================================================
 # Themes
@@ -391,15 +456,15 @@ legend_guides <- guides(
 # =========================================================
 # Main CONUS map
 # =========================================================
-bb_conus <- expand_bbox_asym(
-  states_conus,
+bb_conus <- expand_bbox_asym_from_bbox(
+  st_bbox(states_conus),
   pad_left = 0.03,
   pad_right = 0.03,
   pad_bottom = 0.03,
   pad_top = 0.03
 )
 
-scalebar <- FALSE
+scalebar_conus <- FALSE
 
 p_conus <- ggplot() +
   geom_sf(
@@ -447,53 +512,67 @@ p_conus <- add_repel_labels(
     ylim = unname(c(bb_conus["ymin"], bb_conus["ymax"])),
     expand = FALSE
   ) +
-  fill_scale + 
+  fill_scale +
   legend_guides +
   map_theme_conus
 
-  if (scalebar) {
-    p <- p + annotation_scale(
-      location = "bl",
-      width_hint = scale_width_hint,
-      pad_x = unit(0.12, "in"),
-      pad_y = unit(0.12, "in"),
-      text_cex = inset_scalebar_cex,
-      line_width = 0.55
-    )
-  }
+if (scalebar_conus) {
+  p_conus <- p_conus + annotation_scale(
+    location = "bl",
+    width_hint = 0.25,
+    pad_x = unit(0.12, "in"),
+    pad_y = unit(0.12, "in"),
+    text_cex = conus_scalebar_cex,
+    line_width = 0.55
+  )
+}
+
+# =========================================================
+# Inset extent calculations
+# =========================================================
+bb_ak <- expand_bbox_asym_from_bbox(
+  combine_bbox_layers(states_ak_mainland, ak$dom_radii),
+  pad_left = 0.04,
+  pad_right = 0.04,
+  pad_bottom = 0.05,
+  pad_top = 0.05
+)
+
+bb_hi <- expand_bbox_asym_from_bbox(
+  combine_bbox_layers(states_hi_main, hi$dom_radii),
+  pad_left = 0.06,
+  pad_right = 0.06,
+  pad_bottom = 0.08,
+  pad_top = 0.08
+)
+
+bb_pr <- expand_bbox_asym_from_bbox(
+  combine_bbox_layers(states_pr_main, pr$dom_radii),
+  pad_left = 0.08,
+  pad_right = 0.08,
+  pad_bottom = 0.10,
+  pad_top = 0.10
+)
+
+# Clip PR shared domain/radius to PR map window so south Florida is excluded
+pr$dom <- clip_to_bbox(pr$dom, bb_pr)
+pr$dom_radii <- clip_to_bbox(pr$dom_radii, bb_pr)
 
 # =========================================================
 # Inset map function
 # =========================================================
-make_inset_map <- function(states_region,
+make_inset_map <- function(states_bg,
+                           bb,
                            dom_region,
                            dom_radii_region,
                            site_region,
-                           label_data,
                            region_label = "",
-                           pad_left = 0.05,
-                           pad_right = 0.05,
-                           pad_bottom = 0.05,
-                           pad_top = 0.05,
                            scale_width_hint = 0.25,
-                           label_bottom_exclude = 0.18,
-                           scalebar = TRUE){
-  
-  bb <- expand_bbox_asym(
-    states_region,
-    pad_left = pad_left,
-    pad_right = pad_right,
-    pad_bottom = pad_bottom,
-    pad_top = pad_top
-  )
-  
-  y_min_label <- unname(
-    as.numeric(bb["ymin"] + label_bottom_exclude * (bb["ymax"] - bb["ymin"]))
-  )
+                           scalebar = FALSE) {
   
   p <- ggplot() +
     geom_sf(
-      data = states_region,
+      data = states_bg,
       color = "gray85",
       fill = NA,
       linewidth = 0.22,
@@ -520,101 +599,74 @@ make_inset_map <- function(states_region,
       color = NA,
       alpha = 1,
       show.legend = FALSE
-    )
-  
-  # p <- add_repel_labels(
-  #   p = p,
-  #   label_data = label_data,
-  #   size = inset_label_mm,
-  #   box.padding = 0.16,
-  #   point.padding = 0.08,
-  #   force = 3.0,
-  #   force_pull = 0.5,
-  #   direction = "both",
-  #   ylim_vals = unname(c(y_min_label, Inf))
-  # )
-  
-  p <- p + 
+    ) +
     coord_sf(
       xlim = unname(c(bb["xmin"], bb["xmax"])),
       ylim = unname(c(bb["ymin"], bb["ymax"])),
       expand = FALSE
     ) +
-    fill_scale 
+    fill_scale
   
-    if (scalebar) {
-      p <- p + annotation_scale(
-        location = "bl",
-        width_hint = scale_width_hint,
-        pad_x = unit(0.12, "in"),
-        pad_y = unit(0.12, "in"),
-        text_cex = inset_scalebar_cex,
-        line_width = 0.55
-      )
-    } 
+  if (scalebar) {
+    p <- p + annotation_scale(
+      location = "bl",
+      width_hint = scale_width_hint,
+      pad_x = unit(0.12, "in"),
+      pad_y = unit(0.12, "in"),
+      text_cex = inset_scalebar_cex,
+      line_width = 0.55
+    )
+  }
   
-    p <- p + 
-      annotate(
-        "text",
-        x = unname(bb["xmin"]) + 0.04 * unname(bb["xmax"] - bb["xmin"]),
-        y = unname(bb["ymax"]) - 0.07 * unname(bb["ymax"] - bb["ymin"]),
-        label = region_label,
-        hjust = 0,
-        size = inset_region_mm,
-        fontface = "bold"
-      ) +
-      inset_theme
+  p <- p +
+    annotate(
+      "text",
+      x = unname(bb["xmin"]) + 0.04 * unname(bb["xmax"] - bb["xmin"]),
+      y = unname(bb["ymax"]) - 0.07 * unname(bb["ymax"] - bb["ymin"]),
+      label = region_label,
+      hjust = 0,
+      size = inset_region_mm,
+      fontface = "bold"
+    ) +
+    inset_theme
+  
+  p
 }
 
 # =========================================================
 # Separate inset maps
 # =========================================================
 p_ak <- make_inset_map(
-  states_region = states_ak,
+  states_bg = states_ak_mainland,
+  bb = bb_ak,
   dom_region = ak$dom,
   dom_radii_region = ak$dom_radii,
   site_region = ak$site,
-  label_data = site_labels_ak,
   region_label = "",
-  pad_left = 0.05,
-  pad_right = 0.05,
-  pad_bottom = 0.08,
-  pad_top = 0.05,
   scale_width_hint = 0.28,
-  label_bottom_exclude = 0.16, 
-  scalebar=F
+  scalebar = FALSE
 )
 
 p_hi <- make_inset_map(
-  states_region = states_hi,
+  states_bg = states_hi_main,
+  bb = bb_hi,
   dom_region = hi$dom,
   dom_radii_region = hi$dom_radii,
   site_region = hi$site,
-  label_data = site_labels_hi,
   region_label = "",
-  pad_left = 0.05,
-  pad_right = 0.05,
-  pad_bottom = 0.10,
-  pad_top = 0.05,
   scale_width_hint = 0.30,
-  label_bottom_exclude = 0.18, 
-  scalebar=F
+  scalebar = FALSE
 )
 
 p_pr <- make_inset_map(
-  states_region = states_pr,
+  states_bg = states_pr_main,
+  bb = bb_pr,
   dom_region = pr$dom,
   dom_radii_region = pr$dom_radii,
   site_region = pr$site,
-  label_data = site_labels_pr,
   region_label = "",
-  pad_left = 0.04,
-  pad_right = 0.04,
-  pad_bottom = 0.22,
-  pad_top = 0.06,
   scale_width_hint = 0.22,
-  label_bottom_exclude = 0.22, 
-  scalebar=F
+  scalebar = FALSE
 )
 
 # =========================================================
@@ -667,4 +719,3 @@ ggsave(
   dpi = 600,
   bg = "transparent"
 )
-
